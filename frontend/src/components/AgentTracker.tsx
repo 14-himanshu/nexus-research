@@ -53,9 +53,10 @@ function AgentItem({
 
   return (
     <div className="relative group lg:mb-1" title={TOOLTIPS[agentKey]}>
+      {/* Visual connecting line */}
       {!isLast && (
-        <div className={`hidden lg:block absolute left-[19px] top-[40px] bottom-[-10px] w-[1px] z-0 transition-colors duration-500 ${
-          isDone ? 'bg-white/20' : 'bg-white/5'
+        <div className={`hidden lg:block absolute left-[19px] top-[40px] bottom-[-12px] w-[2px] z-0 transition-colors duration-500 ${
+          isDone ? 'bg-emerald-500/40' : 'bg-white/10'
         }`} />
       )}
       
@@ -64,29 +65,35 @@ function AgentItem({
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
         className={`relative z-10 p-3 flex items-center gap-4 rounded-xl transition-all duration-500 ${
-          isWorking ? 'opacity-100 bg-white/5 border border-white/10' :
+          isWorking ? 'opacity-100 bg-white/5 border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.03)]' :
           isDone ? 'opacity-70 hover:opacity-100' :
           isError ? 'opacity-100' :
           'opacity-30'
         }`}
       >
-        <div className={`p-2 rounded-lg transition-colors duration-500 shrink-0 ${
-          isWorking ? 'bg-white text-[#09090b] shadow-[0_0_15px_rgba(255,255,255,0.2)]' :
-          isDone ? 'bg-white/10 text-white' :
-          isError ? 'bg-red-500/20 text-red-400' :
-          'bg-white/5 text-zinc-500'
-        }`}>
-          {isWorking ? <Loader2 size={16} className="animate-spin" /> :
-           isError ? <AlertCircle size={16} /> :
-           isDone ? <CheckCircle size={16} /> :
-           <Icon size={16} />}
+        <div className="relative shrink-0">
+          <div className={`relative z-10 p-2 rounded-lg transition-colors duration-500 ${
+            isWorking ? 'bg-white text-[#09090b]' :
+            isDone ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+            isError ? 'bg-red-500/20 text-red-400' :
+            'bg-white/5 text-zinc-500'
+          }`}>
+            {isWorking ? <Loader2 size={16} className="animate-spin" /> :
+             isError ? <AlertCircle size={16} /> :
+             isDone ? <CheckCircle size={16} /> :
+             <Icon size={16} />}
+          </div>
+          {/* Pulsing ring when working */}
+          {isWorking && (
+            <div className="absolute inset-0 bg-white/30 rounded-lg animate-ping z-0" />
+          )}
         </div>
         
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-center">
             <h4 className={`font-semibold text-sm tracking-wide flex items-center gap-2 ${
               isWorking ? 'text-white' : 
-              isDone ? 'text-zinc-300' : 
+              isDone ? 'text-emerald-400' : 
               isError ? 'text-red-400' : 'text-zinc-500'
             }`}>
               <span className={`text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 ${
