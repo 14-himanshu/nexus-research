@@ -6,6 +6,7 @@ import GithubSlugger from 'github-slugger';
 import { motion } from 'framer-motion';
 import { Copy, Check, FileText, Maximize2, Minimize2, Clock, Sun, Moon, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 
 interface ResearchReportProps {
   content: string;
@@ -15,6 +16,7 @@ interface ResearchReportProps {
 }
 
 export function ResearchReport({ content, isStreaming, totalTime, reportId }: ResearchReportProps) {
+  const { token } = useAuth();
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [paperMode, setPaperMode] = useState(false);
@@ -74,11 +76,14 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
       const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
       await fetch(`${baseUrl}/history/${reportId}/rate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ rating: val })
       });
       toast.success(val === 1 ? 'Glad it was helpful!' : 'Thanks for the feedback');
-    } catch (err) {
+    } catch {
       toast.error('Failed to submit rating');
     }
   };

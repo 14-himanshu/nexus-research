@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 
 export type AgentStatus = 'idle' | 'working' | 'done' | 'error';
 
@@ -10,6 +11,7 @@ export interface AgentState {
 }
 
 export function useResearchStream() {
+  const { token, logout } = useAuth();
   const [reportTokens, setReportTokens] = useState<string>(() => sessionStorage.getItem('reportTokens') || '');
   const [finalReport, setFinalReport] = useState<string | null>(() => sessionStorage.getItem('finalReport') || null);
 
@@ -105,10 +107,19 @@ export function useResearchStream() {
       const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
       const response = await fetch(`${baseUrl}/research`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ query, depth, chat_history: chatHistory }),
         signal: abortControllerRef.current.signal,
       });
+
+      if (response.status === 401) {
+        logout();
+        toast.error('Session expired, please login again.');
+        return;
+      }
 
       if (!response.body) throw new Error("No response body");
 
@@ -197,7 +208,7 @@ export function useResearchStream() {
       toast.error('Research pipeline failed');
       setIsSearching(false);
     }
-  }, []);
+  }, [token, lastQuery, finalReport, logout]);
 
   const stopResearch = useCallback(() => {
     if (abortControllerRef.current) {
@@ -209,7 +220,7 @@ export function useResearchStream() {
     }
   }, []);
 
-  const restoreReport = useCallback((query: string, report: string, depth: string, id?: number) => {
+  const restoreReport = useCallback((query: string, report: string, _depth: string, id?: number) => {
     setIsSearching(false);
     setError(null);
     setReportTokens('');

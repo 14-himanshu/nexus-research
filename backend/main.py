@@ -1,23 +1,26 @@
 import json
 import asyncio
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+import os
 
 # Load env before importing graph so API keys are ready
 load_dotenv()
 
 from graph import research_graph
-
-import os
+from auth import get_current_user, create_access_token, get_password_hash, verify_password
+from database import (
+    create_user, get_user_by_username, get_user_by_id, update_user_settings,
+    save_report, get_history, get_report, delete_report, update_rating
+)
 
 app = FastAPI(title="Multi-Agent Research API")
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "*")
 
-# Setup CORS for the React frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[FRONTEND_URL] if FRONTEND_URL != "*" else ["*"],
@@ -26,35 +29,62 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+class SettingsUpdate(BaseModel):
+    gemini_api_key: str
+
 class ResearchRequest(BaseModel):
     query: str
     depth: str = "standard"
-    chat_history: list = []  # For future follow-up support
+    chat_history: list = []
 
-async def generate_sse_events(query: str, depth: str, chat_history: list = []):
-    """
-    Generator that runs the LangGraph pipeline and yields Server-Sent Events.
-    """
+@app.post("/signup")
+async def signup(user: UserCreate):
+    hashed = get_password_hash(user.password)
+    user_id = create_user(user.username, hashed)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Username already exists")
+    token = create_access_token({"sub": user_id})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.post("/login")
+async def login(user: UserCreate):
+    db_user = get_user_by_username(user.username)
+    if not db_user or not verify_password(user.password, db_user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": db_user["id"]})
+    return {"access_token": token, "token_type": "bearer"}
+
+@app.get("/me")
+async def get_me(user_id: int = Depends(get_current_user)):
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404)
+    return user
+
+@app.post("/me/settings")
+async def update_settings(settings: SettingsUpdate, user_id: int = Depends(get_current_user)):
+    update_user_settings(user_id, settings.gemini_api_key)
+    return {"status": "success"}
+
+async def generate_sse_events(user_id: int, query: str, depth: str, chat_history: list = []):
     try:
-        # Setup initial state
         initial_state = {
             "user_query": query,
             "depth": depth,
             "messages": chat_history
         }
         
-        # We use astream_events to get granular updates
         async for event in research_graph.astream_events(initial_state, version="v1"):
             kind = event["event"]
             
-            # 1. Capture node transitions (e.g. planner -> researcher)
             if kind == "on_chain_start":
                 node_name = event.get("name")
-                # Filter out internal langgraph nodes
                 if node_name in ["planner", "researcher", "fact_checker", "writer"]:
                     status_msg = f"Agent {node_name} is thinking..."
-                    
-                    # Try to extract detailed context from the input state
                     try:
                         input_data = event.get("data", {}).get("input", {})
                         if isinstance(input_data, dict):
@@ -77,28 +107,21 @@ async def generate_sse_events(query: str, depth: str, chat_history: list = []):
                     data = json.dumps({"agent": node_name, "status": status_msg})
                     yield f"event: agent_update\ndata: {data}\n\n"
                     
-            # 2. Capture LLM streaming tokens (specifically from the writer for the final report)
             elif kind == "on_chat_model_stream":
-                # Only stream the writer's tokens to the UI (the rest happens in background)
                 tags = event.get("tags", [])
                 node_name = event.get("metadata", {}).get("langgraph_node")
                 
                 if node_name == "writer":
                     chunk = event["data"]["chunk"].content
                     if chunk:
-                        # Yield token
                         data = json.dumps({"token": chunk})
                         yield f"event: token\ndata: {data}\n\n"
             
-            # 3. Capture the final output
             elif kind == "on_chain_end":
                 if event.get("name") == "writer":
                     final_report = event.get("data", {}).get("output", {}).get("final_report", "")
                     if final_report:
-                        # Save to database
-                        from database import save_report
-                        report_id = save_report(query, final_report, depth)
-                        
+                        report_id = save_report(user_id, query, final_report, depth)
                         data = json.dumps({"report": final_report, "id": report_id})
                         yield f"event: done\ndata: {data}\n\n"
                         
@@ -116,38 +139,34 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "1.0"}
+    return {"status": "ok", "version": "2.0"}
 
 @app.get("/history")
-async def fetch_history():
-    from database import get_history
-    return get_history(limit=20)
+async def fetch_history(user_id: int = Depends(get_current_user)):
+    return get_history(user_id=user_id, limit=20)
 
 @app.get("/history/{report_id}")
-async def fetch_report(report_id: int):
-    from database import get_report
-    report = get_report(report_id)
+async def fetch_report(report_id: int, user_id: int = Depends(get_current_user)):
+    report = get_report(user_id, report_id)
     if report:
         return report
-    return {"error": "Report not found"}
+    raise HTTPException(status_code=404, detail="Report not found")
 
 @app.delete("/history/{report_id}")
-async def delete_history_report(report_id: int):
-    from database import delete_report
-    delete_report(report_id)
+async def delete_history_report(report_id: int, user_id: int = Depends(get_current_user)):
+    delete_report(user_id, report_id)
     return {"status": "success"}
 
 @app.post("/history/{report_id}/rate")
-async def rate_report(report_id: int, request: Request):
+async def rate_report(report_id: int, request: Request, user_id: int = Depends(get_current_user)):
     data = await request.json()
     rating = data.get("rating", 0)
-    from database import update_rating
-    update_rating(report_id, rating)
+    update_rating(user_id, report_id, rating)
     return {"status": "success"}
 
 @app.post("/research")
-async def research_endpoint(request: ResearchRequest):
-    return StreamingResponse(generate_sse_events(request.query, request.depth, request.chat_history), media_type="text/event-stream")
+async def research_endpoint(request: ResearchRequest, user_id: int = Depends(get_current_user)):
+    return StreamingResponse(generate_sse_events(user_id, request.query, request.depth, request.chat_history), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn

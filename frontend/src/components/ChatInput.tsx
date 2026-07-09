@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Square, Loader2, Clock, History, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '../context/AuthContext';
 
 interface ChatInputProps {
   onSearch: (query: string, depth: string) => void;
   onStop: () => void;
   isSearching: boolean;
-  onRestore?: (query: string, report: string, depth: string) => void;
+  onRestore?: (query: string, report: string, depth: string, id: number) => void;
 }
 
 const PLACEHOLDERS = [
@@ -17,6 +18,7 @@ const PLACEHOLDERS = [
 ];
 
 export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInputProps) {
+  const { token } = useAuth();
   const [query, setQuery] = useState('');
   const [depth, setDepth] = useState('standard');
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
@@ -26,11 +28,13 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (showHistory) {
+    if (showHistory && token) {
       const fetchHistory = async () => {
         try {
           const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-          const res = await fetch(`${baseUrl}/history`);
+          const res = await fetch(`${baseUrl}/history`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
           if (res.ok) {
             const data = await res.json();
             setHistory(data);
@@ -41,7 +45,7 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
       };
       fetchHistory();
     }
-  }, [showHistory]);
+  }, [showHistory, token]);
 
   // ⌘K to focus
   useEffect(() => {
@@ -107,7 +111,9 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
     setShowHistory(false);
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const res = await fetch(`${baseUrl}/history/${h.id}`);
+      const res = await fetch(`${baseUrl}/history/${h.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (res.ok) {
         const data = await res.json();
         if (onRestore) {
@@ -123,7 +129,10 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
     e.stopPropagation();
     try {
       const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      await fetch(`${baseUrl}/history/${id}`, { method: 'DELETE' });
+      await fetch(`${baseUrl}/history/${id}`, { 
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       setHistory(prev => prev.filter(h => h.id !== id));
       toast.success('Search removed from history');
     } catch (err) {
