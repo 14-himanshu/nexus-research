@@ -57,7 +57,23 @@ def init_db():
             )
         ''')
         
+        # Collections table
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS collections (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
         # Add columns to existing tables if needed
+        try:
+            cursor.execute('ALTER TABLE history ADD COLUMN collection_id INTEGER REFERENCES collections(id)')
+        except sqlite3.OperationalError:
+            pass
+
         try:
             cursor.execute('ALTER TABLE history ADD COLUMN rating INTEGER DEFAULT 0')
         except sqlite3.OperationalError:
@@ -114,36 +130,84 @@ def update_user_settings(user_id: int, gemini_api_key: str):
 
 # --- History Management ---
 
-def save_report(user_id: int, query: str, report: str, depth: str):
+def save_report(user_id: int, query: str, report: str, depth: str, collection_id: int = None):
     with closing(sqlite3.connect(DB_PATH)) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            INSERT INTO history (user_id, query, report, depth, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        ''', (user_id, query, report, depth, datetime.now().isoformat()))
+            INSERT INTO history (user_id, query, report, depth, created_at, collection_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (user_id, query, report, depth, datetime.now().isoformat(), collection_id))
         conn.commit()
         return cursor.lastrowid
 
-def get_history(user_id: int, limit: int = 20):
+def get_history(user_id: int, collection_id: int = None, limit: int = 50):
     with closing(sqlite3.connect(DB_PATH)) as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-            SELECT id, query, depth, rating, created_at FROM history
-            WHERE user_id = ? OR user_id IS NULL
-            ORDER BY created_at DESC LIMIT ?
-        ''', (user_id, limit))
+        if collection_id is not None:
+            cursor.execute('''
+                SELECT id, query, depth, rating, created_at, collection_id FROM history
+                WHERE user_id = ? AND collection_id = ?
+                ORDER BY created_at DESC LIMIT ?
+            ''', (user_id, collection_id, limit))
+        else:
+            cursor.execute('''
+                SELECT id, query, depth, rating, created_at, collection_id FROM history
+                WHERE user_id = ?
+                ORDER BY created_at DESC LIMIT ?
+            ''', (user_id, limit))
         rows = cursor.fetchall()
         
         return [
-            {"id": r[0], "query": r[1], "depth": r[2], "rating": r[3], "created_at": r[4]}
+            {"id": r[0], "query": r[1], "depth": r[2], "rating": r[3], "created_at": r[4], "collection_id": r[5]}
             for r in rows
         ]
+
+# --- Collections Management ---
+
+def create_collection(user_id: int, name: str):
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO collections (user_id, name)
+            VALUES (?, ?)
+        ''', (user_id, name))
+        conn.commit()
+        return cursor.lastrowid
+
+def get_collections(user_id: int):
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT id, name, created_at FROM collections
+            WHERE user_id = ?
+            ORDER BY created_at DESC
+        ''', (user_id,))
+        rows = cursor.fetchall()
+        return [{"id": r[0], "name": r[1], "created_at": r[2]} for r in rows]
+
+def delete_collection(user_id: int, collection_id: int):
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        cursor = conn.cursor()
+        # Optionally, move reports out of the collection or let them remain with null
+        cursor.execute('UPDATE history SET collection_id = NULL WHERE collection_id = ? AND user_id = ?', (collection_id, user_id))
+        cursor.execute('DELETE FROM collections WHERE id = ? AND user_id = ?', (collection_id, user_id))
+        conn.commit()
+
+def update_report_collection(user_id: int, report_id: int, collection_id: int):
+    with closing(sqlite3.connect(DB_PATH)) as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE history SET collection_id = ?
+            WHERE id = ? AND user_id = ?
+        ''', (collection_id, report_id, user_id))
+        conn.commit()
+
 
 def get_report(user_id: int, report_id: int):
     with closing(sqlite3.connect(DB_PATH)) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT id, query, report, depth, rating, created_at FROM history
+            SELECT id, query, report, depth, rating, created_at, collection_id FROM history
             WHERE id = ? AND (user_id = ? OR user_id IS NULL)
         ''', (report_id, user_id))
         row = cursor.fetchone()
@@ -155,7 +219,8 @@ def get_report(user_id: int, report_id: int):
                 "report": row[2],
                 "depth": row[3],
                 "rating": row[4],
-                "created_at": row[5]
+                "created_at": row[5],
+                "collection_id": row[6]
             }
         return None
 

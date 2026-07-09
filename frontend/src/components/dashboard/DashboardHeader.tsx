@@ -1,4 +1,4 @@
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface DashboardHeaderProps {
@@ -8,63 +8,88 @@ interface DashboardHeaderProps {
   onLogout: () => void;
   lastQuery: string;
   totalReports?: number;
+  isSidebarOpen?: boolean;
+  toggleSidebar?: () => void;
 }
 
-export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout, lastQuery, totalReports }: DashboardHeaderProps) {
+export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout, lastQuery, totalReports, isSidebarOpen, toggleSidebar }: DashboardHeaderProps) {
   const navigate = useNavigate();
 
+  const statusConfig = {
+    online: { dot: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]', text: 'Live', color: 'text-emerald-400' },
+    checking: { dot: 'bg-amber-400', text: 'Connecting', color: 'text-amber-400' },
+    error: { dot: 'bg-red-400', text: 'Error', color: 'text-red-400' },
+    offline: { dot: 'bg-zinc-500', text: 'Offline', color: 'text-zinc-500' },
+  };
+  const status = statusConfig[backendStatus] || statusConfig.offline;
+
   return (
-    <header className="px-6 sm:px-10 py-4 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
-      <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/dashboard')}>
-        <div className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]">
-          N
+    <header className="h-14 px-4 flex items-center justify-between border-b border-white/[0.06] bg-[#0a0a0f]/80 backdrop-blur-xl shrink-0 z-20">
+      {/* Left: Toggle + Logo */}
+      <div className="flex items-center gap-3">
+        {toggleSidebar && (
+          <button
+            onClick={toggleSidebar}
+            className="p-2 text-zinc-500 hover:text-white hover:bg-white/[0.07] rounded-lg transition-all duration-200"
+            title={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            {isSidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
+          </button>
+        )}
+        <div
+          className="flex items-center gap-2.5 cursor-pointer group"
+          onClick={() => navigate('/dashboard')}
+        >
+          <div className="w-7 h-7 bg-white text-black rounded-lg flex items-center justify-center font-bold text-sm shadow-lg shadow-white/10 group-hover:shadow-white/20 transition-all">
+            N
+          </div>
+          <span className="text-sm font-bold tracking-tight text-white hidden sm:block">Nexus</span>
         </div>
-        <div className="flex items-center gap-2">
-            <h1 className="text-sm font-bold tracking-tight text-white hidden sm:block">Nexus</h1>
-            {lastQuery && (
-                <>
-                    <span className="text-zinc-600">/</span>
-                    <span className="text-sm font-medium text-zinc-400 truncate max-w-[200px] sm:max-w-md">"{lastQuery}"</span>
-                </>
-            )}
-        </div>
+        {lastQuery && (
+          <div className="hidden md:flex items-center gap-2 text-[13px]">
+            <span className="text-zinc-700">/</span>
+            <span className="text-zinc-400 truncate max-w-[280px] font-medium">{lastQuery}</span>
+          </div>
+        )}
       </div>
-      
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-xs font-medium hidden sm:flex">
-          <div className={`w-2 h-2 rounded-full ${backendStatus === 'online' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]' : backendStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
-          <span className={backendStatus === 'online' ? 'text-zinc-300' : 'text-zinc-500'}>
-            {backendStatus === 'online' ? 'Systems Nominal' : backendStatus === 'checking' ? 'Connecting...' : 'Offline'}
-          </span>
+
+      {/* Right: Status + User */}
+      <div className="flex items-center gap-2">
+        {/* Backend Status Badge */}
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.07] text-xs font-medium">
+          <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.dot}`} />
+          <span className={status.color}>{status.text}</span>
         </div>
-        
-        <div className="flex items-center gap-2 border-l border-white/10 pl-6">
-            <div className="flex items-center gap-2 mr-2">
-                <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/20">
-                    {user.username.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-zinc-300 leading-none">{user.username}</span>
-                  {totalReports !== undefined && (
-                    <span className="text-[10px] text-zinc-500 font-mono mt-0.5">{totalReports} reports</span>
-                  )}
-                </div>
-            </div>
-            <button 
-                onClick={onSettingsClick}
-                className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
-                title="Settings"
-            >
-                <Settings size={16} />
-            </button>
-            <button 
-                onClick={() => { if (window.confirm("Are you sure you want to log out?")) onLogout(); }}
-                className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
-                title="Sign Out"
-            >
-                <LogOut size={16} />
-            </button>
+
+        <div className="w-px h-5 bg-white/10 mx-1 hidden sm:block" />
+
+        {/* User Avatar */}
+        <div className="flex items-center gap-2.5 pl-1">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500/40 to-purple-500/40 text-white flex items-center justify-center text-xs font-bold border border-white/10 shrink-0">
+            {user.username.charAt(0).toUpperCase()}
+          </div>
+          <div className="hidden md:flex flex-col">
+            <span className="text-[13px] font-medium text-zinc-200 leading-tight">{user.username}</span>
+            {totalReports !== undefined && (
+              <span className="text-[10px] text-zinc-500">{totalReports} reports</span>
+            )}
+          </div>
         </div>
+
+        <button
+          onClick={onSettingsClick}
+          className="p-2 text-zinc-500 hover:text-white hover:bg-white/[0.07] rounded-lg transition-all duration-200"
+          title="Settings"
+        >
+          <Settings size={16} />
+        </button>
+        <button
+          onClick={() => { if (window.confirm('Sign out of Nexus?')) onLogout(); }}
+          className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-200"
+          title="Sign Out"
+        >
+          <LogOut size={16} />
+        </button>
       </div>
     </header>
   );

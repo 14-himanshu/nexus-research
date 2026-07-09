@@ -76,7 +76,7 @@ export function useResearchStream() {
   
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const startResearch = useCallback(async (query: string, depth: string = 'standard') => {
+  const startResearch = useCallback(async (query: string, depth: string = 'standard', collection_id: number | null = null) => {
     // Reset states
     setIsSearching(true);
     setError(null);
@@ -112,7 +112,7 @@ export function useResearchStream() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ query, depth, chat_history: chatHistory }),
+        body: JSON.stringify({ query, depth, chat_history: chatHistory, collection_id }),
         signal: abortControllerRef.current.signal,
       });
 

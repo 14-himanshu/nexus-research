@@ -1,4 +1,4 @@
-import { Copy, Check, FileText, Maximize2, Minimize2, Clock, Sun, Moon } from 'lucide-react';
+import { Copy, Check, FileText, Maximize2, Minimize2, Clock, Sun, Moon, Zap } from 'lucide-react';
 
 interface ReportToolbarProps {
   words: number;
@@ -25,67 +25,86 @@ export function ReportToolbar({
   handleCopy,
   handlePrint,
   isFullscreen,
-  setIsFullscreen
+  setIsFullscreen,
 }: ReportToolbarProps) {
-  const headerClasses = paperMode
-    ? 'border-b border-zinc-200 bg-white/50'
-    : 'border-b border-white/5 bg-white/[0.02]';
-
-  const buttonClasses = paperMode
-    ? 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
-    : 'text-zinc-400 hover:text-white hover:bg-white/10';
+  const bg = paperMode ? 'border-b border-zinc-200 bg-white' : 'border-b border-white/[0.07] bg-[#0d0d14]/80 backdrop-blur-xl';
+  const btnBase = paperMode
+    ? 'p-2 rounded-lg text-zinc-400 hover:text-zinc-800 hover:bg-zinc-100 transition-all duration-200'
+    : 'p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/[0.08] transition-all duration-200';
 
   return (
-    <div className={`flex justify-between items-center px-8 py-4 print:hidden transition-colors ${headerClasses}`}>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-        <span className={`text-sm font-semibold tracking-wide ${paperMode ? 'text-zinc-800' : 'text-white'}`}>Research Document</span>
+    <div className={`flex items-center justify-between px-5 py-3 print:hidden ${bg}`}>
+      {/* Left: meta */}
+      <div className="flex items-center gap-3">
+        <span className={`text-[13px] font-semibold ${paperMode ? 'text-zinc-800' : 'text-zinc-200'}`}>
+          Research Report
+        </span>
         {!isStreaming && (
-          <div className="flex items-center gap-3 text-xs font-medium text-zinc-500">
-            <span className={`px-2 py-1 rounded border ${paperMode ? 'bg-zinc-100 border-zinc-200' : 'bg-white/5 border-white/5'}`}>
-              {words} words
+          <div className="flex items-center gap-2">
+            <span className={`text-[11px] font-medium px-2.5 py-1 rounded-lg border ${
+              paperMode ? 'bg-zinc-100 border-zinc-200 text-zinc-500' : 'bg-white/[0.05] border-white/[0.07] text-zinc-500'
+            }`}>
+              {words.toLocaleString()} words
             </span>
-            <span className={`flex items-center gap-1.5 px-2 py-1 rounded border ${paperMode ? 'bg-zinc-100 border-zinc-200' : 'bg-white/5 border-white/5'}`}>
-              <Clock size={12} />
+            <span className={`hidden sm:flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-lg border ${
+              paperMode ? 'bg-zinc-100 border-zinc-200 text-zinc-500' : 'bg-white/[0.05] border-white/[0.07] text-zinc-500'
+            }`}>
+              <Clock size={11} />
               {readTime}m read
             </span>
             {totalTime && (
-              <span className={`border-l pl-3 hidden sm:inline ${paperMode ? 'border-zinc-300' : 'border-white/10'}`}>
+              <span className={`hidden md:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg border ${
+                paperMode ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-emerald-500/8 border-emerald-500/20 text-emerald-400'
+              }`}>
+                <Zap size={10} />
                 Generated in {totalTime}s
               </span>
             )}
           </div>
         )}
+        {isStreaming && (
+          <div className="flex items-center gap-1.5 text-[12px] text-zinc-500">
+            <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            Writing…
+          </div>
+        )}
       </div>
-      <div className="flex gap-1 sm:gap-2">
-        <button 
+
+      {/* Right: action buttons */}
+      <div className="flex items-center gap-0.5">
+        <button
           onClick={() => setPaperMode(!paperMode)}
-          className={`p-2 rounded-xl transition-all ${buttonClasses}`}
-          title="Toggle Paper Mode"
+          className={btnBase}
+          title={paperMode ? 'Dark mode' : 'Paper mode'}
         >
-          {paperMode ? <Moon size={18} /> : <Sun size={18} />}
+          {paperMode ? <Moon size={16} /> : <Sun size={16} />}
         </button>
-        <button 
+        <button
           onClick={handleCopy}
           disabled={isStreaming}
-          className={`p-2 rounded-xl transition-all disabled:opacity-30 ${buttonClasses}`}
-          title="Copy Markdown"
+          className={`${btnBase} disabled:opacity-30`}
+          title="Copy markdown"
         >
-          {copied ? <Check size={18} className={paperMode ? "text-zinc-900" : "text-white"} /> : <Copy size={18} />}
+          {copied
+            ? <Check size={16} className={paperMode ? 'text-emerald-600' : 'text-emerald-400'} />
+            : <Copy size={16} />
+          }
         </button>
-        <button 
+        <button
           onClick={handlePrint}
           disabled={isStreaming}
-          className={`p-2 rounded-xl transition-all disabled:opacity-30 hidden sm:block ${buttonClasses}`}
+          className={`${btnBase} hidden sm:block disabled:opacity-30`}
           title="Export as PDF"
         >
-          <FileText size={18} />
+          <FileText size={16} />
         </button>
-        <button 
+        <div className={`w-px h-4 mx-1 ${paperMode ? 'bg-zinc-200' : 'bg-white/[0.08]'}`} />
+        <button
           onClick={() => setIsFullscreen(!isFullscreen)}
-          className={`p-2 rounded-xl transition-all ${buttonClasses}`}
-          title="Toggle Fullscreen"
+          className={btnBase}
+          title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
         >
-          {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+          {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
         </button>
       </div>
     </div>

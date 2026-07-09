@@ -1,32 +1,60 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @theme {
-  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   body {
-    @apply bg-[#09090b] text-zinc-300 font-sans antialiased selection:bg-zinc-800 selection:text-white;
+    @apply bg-[#0a0a0f] text-zinc-300 font-sans antialiased selection:bg-indigo-500/30 selection:text-white;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-zinc-900/50 backdrop-blur-xl border border-white/5 shadow-2xl;
+    @apply bg-white/[0.03] backdrop-blur-2xl border border-white/[0.06] shadow-2xl;
   }
   
   .glass-input {
     @apply bg-white/5 backdrop-blur-md border border-white/10 shadow-inner;
   }
+
+  .sidebar-item {
+    @apply w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-200 cursor-pointer;
+  }
+
+  .sidebar-item-active {
+    @apply bg-white/10 text-white shadow-sm;
+  }
+
+  .sidebar-item-inactive {
+    @apply text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06];
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-white text-black font-semibold rounded-xl hover:bg-zinc-100 transition-all duration-200 text-sm shadow-md;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 text-zinc-400 hover:text-white hover:bg-white/[0.08] font-medium rounded-xl transition-all duration-200 text-sm;
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Minimalist scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
@@ -34,11 +62,16 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-zinc-800 rounded-full border-2 border-[#09090b];
+  @apply bg-zinc-700/60 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-zinc-700;
+  @apply bg-zinc-600;
+}
+
+/* Focus rings */
+*:focus-visible {
+  @apply outline-none ring-1 ring-white/20 ring-offset-0;
 }
 
 @media print {

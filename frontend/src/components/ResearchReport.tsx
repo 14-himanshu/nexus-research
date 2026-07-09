@@ -165,24 +165,24 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
     }
   };
 
-  const modeClasses = paperMode 
-    ? 'bg-[#f5f5f4] text-zinc-900 border-zinc-200' 
-    : 'glass-panel text-white';
+  const modeClasses = paperMode
+    ? 'bg-white text-zinc-900 border border-zinc-200/80'
+    : `${isFullscreen ? 'bg-[#0a0a0f]' : 'bg-white/[0.02]'} border border-white/[0.07] text-white`;
 
   const buttonClasses = paperMode
-    ? 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-200/50'
-    : 'text-zinc-400 hover:text-white hover:bg-white/10';
+    ? 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100'
+    : 'text-zinc-400 hover:text-white hover:bg-white/[0.08]';
 
   const proseClasses = paperMode
     ? 'prose-stone prose-headings:text-zinc-900 prose-a:text-blue-600 prose-strong:text-zinc-900'
-    : 'prose-invert prose-zinc prose-headings:text-white prose-a:text-white prose-strong:text-white';
+    : 'prose-invert prose-zinc prose-headings:text-white prose-a:text-indigo-400 prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-code:text-indigo-300 prose-pre:bg-[#0d0d14] prose-pre:border prose-pre:border-white/[0.07]';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`w-full flex flex-col transition-all duration-500 print:border-none print:shadow-none print:bg-white print:text-black overflow-hidden ${modeClasses} ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none' : 'rounded-3xl max-h-[calc(100vh-140px)]'
+      className={`w-full flex flex-col transition-all duration-500 print:border-none print:shadow-none print:bg-white print:text-black rounded-2xl shadow-2xl overflow-hidden ${modeClasses} ${
+        isFullscreen ? 'fixed inset-0 z-50 rounded-none' : ''
       }`}
     >
       <ReportToolbar 
@@ -228,8 +228,8 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
           </div>
         )}
 
-        {/* Content area */}
-        <div ref={scrollRef} className="p-8 lg:p-12 overflow-y-auto flex-1 print:p-0 print:overflow-visible scroll-smooth relative">
+        {/* Content area — internal scroll only needed in fullscreen mode */}
+        <div ref={scrollRef} className={`p-6 lg:p-10 flex-1 print:p-0 print:overflow-visible scroll-smooth relative ${isFullscreen ? 'overflow-y-auto' : ''}`}>
           <div className={`prose max-w-[800px] mx-auto prose-headings:font-semibold prose-headings:tracking-tight prose-a:underline-offset-4 prose-li:marker:text-zinc-600 print:prose-p:text-black print:prose-headings:text-black transition-colors ${proseClasses}`}>
             <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSlug]}>
               {content}
