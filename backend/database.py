@@ -83,7 +83,10 @@ def create_user(username: str, password_hash: str):
                     INSERT INTO users (username, password_hash)
                     VALUES (%s, %s) RETURNING id
                 ''', (username, password_hash))
-                user_id = cursor.fetchone()[0]
+                row = cursor.fetchone()
+                if not row:
+                    return None
+                user_id = row[0]
                 conn.commit()
                 return user_id
             except psycopg2.IntegrityError:
@@ -118,18 +121,21 @@ def update_user_settings(user_id: int, gemini_api_key: str):
 
 # --- History Management ---
 
-def save_report(user_id: int, query: str, report: str, depth: str, collection_id: int = None):
+def save_report(user_id: int, query: str, report: str, depth: str, collection_id: int | None = None):
     with closing(get_connection()) as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 INSERT INTO history (user_id, query, report, depth, created_at, collection_id)
                 VALUES (%s, %s, %s, %s, %s, %s) RETURNING id
             ''', (user_id, query, report, depth, datetime.now().isoformat(), collection_id))
-            report_id = cursor.fetchone()[0]
+            row = cursor.fetchone()
+            if not row:
+                return None
+            report_id = row[0]
             conn.commit()
             return report_id
 
-def get_history(user_id: int, collection_id: int = None, limit: int = 50):
+def get_history(user_id: int, collection_id: int | None = None, limit: int = 50):
     with closing(get_connection()) as conn:
         with conn.cursor() as cursor:
             if collection_id is not None:
@@ -160,7 +166,10 @@ def create_collection(user_id: int, name: str):
                 INSERT INTO collections (user_id, name)
                 VALUES (%s, %s) RETURNING id
             ''', (user_id, name))
-            collection_id = cursor.fetchone()[0]
+            row = cursor.fetchone()
+            if not row:
+                return None
+            collection_id = row[0]
             conn.commit()
             return collection_id
 
