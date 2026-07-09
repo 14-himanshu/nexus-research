@@ -60,11 +60,7 @@ export function LoginPage() {
       <div className="w-full max-w-[400px] mx-4">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div
-            className="inline-flex w-11 h-11 bg-white text-black rounded-xl items-center justify-center font-bold text-xl shadow-xl shadow-white/10 mb-5 mx-auto"
-          >
-            N
-          </div>
+          <img src="/favicon.svg" alt="Nexus Logo" className="w-12 h-12 mb-5 mx-auto drop-shadow-lg" />
           <h1 className="text-2xl font-bold text-white tracking-tight mb-1.5">Welcome back</h1>
           <p className="text-zinc-500 text-[14px]">Sign in to your Nexus workspace</p>
         </div>

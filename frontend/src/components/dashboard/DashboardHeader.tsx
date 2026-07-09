@@ -40,9 +40,7 @@ export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout
           className="flex items-center gap-2.5 cursor-pointer group"
           onClick={() => navigate('/dashboard')}
         >
-          <div className="w-7 h-7 bg-white text-black rounded-lg flex items-center justify-center font-bold text-sm shadow-lg shadow-white/10 group-hover:shadow-white/20 transition-all">
-            N
-          </div>
+          <img src="/favicon.svg" alt="Nexus Logo" className="w-7 h-7 drop-shadow-md group-hover:scale-105 transition-transform" />
           <span className="text-sm font-bold tracking-tight text-white hidden sm:block">Nexus</span>
         </div>
         {lastQuery && (

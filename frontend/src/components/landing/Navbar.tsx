@@ -24,9 +24,7 @@ export function Navbar() {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-base shadow-lg shadow-white/10">
-            N
-          </div>
+          <img src="/favicon.svg" alt="Nexus Logo" className="w-8 h-8 drop-shadow-md" />
           <span className="text-[15px] font-bold tracking-tight text-white">Nexus</span>
         </div>
 
