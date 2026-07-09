@@ -4,6 +4,7 @@ import { LandingPage } from './pages/LandingPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { NotFoundPage } from './pages/NotFoundPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -27,7 +28,7 @@ export default function App() {
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
         <Route path="/signup" element={<PublicRoute><SignupPage /></PublicRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
   );

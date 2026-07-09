@@ -38,9 +38,9 @@ export function FooterSection() {
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm">Product</h4>
             <ul className="space-y-3 text-sm text-zinc-500">
-              <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Changelog</a></li>
+              <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()} className="hover:text-white transition-colors">Pricing</a></li>
+              <li><a href="https://github.com/14-himanshu/nexus-research/commits/main" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Changelog</a></li>
             </ul>
           </div>
 
@@ -56,9 +56,9 @@ export function FooterSection() {
           <div>
             <h4 className="text-white font-semibold mb-4 text-sm">Company</h4>
             <ul className="space-y-3 text-sm text-zinc-500">
-              <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()} className="hover:text-white transition-colors">About</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()} className="hover:text-white transition-colors">Blog</a></li>
+              <li><a href="#" onClick={(e) => e.preventDefault()} className="hover:text-white transition-colors">Contact</a></li>
             </ul>
           </div>
           
@@ -67,8 +67,8 @@ export function FooterSection() {
         <div className="max-w-[1200px] mx-auto mt-16 pt-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-600 font-medium">
           <p>© 2026 Nexus Research. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-zinc-400">Privacy Policy</a>
-            <a href="#" className="hover:text-zinc-400">Terms of Service</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-zinc-400">Privacy Policy</a>
+            <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-zinc-400">Terms of Service</a>
           </div>
         </div>
       </footer>

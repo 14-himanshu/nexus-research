@@ -25,7 +25,7 @@ export function HowItWorks() {
   ];
 
   return (
-    <section className="relative z-10 py-32 px-6 bg-black border-t border-zinc-900 overflow-hidden">
+    <section id="how-it-works" className="relative z-10 py-32 px-6 bg-black border-t border-zinc-900 overflow-hidden">
       <div className="max-w-[1200px] mx-auto text-center relative">
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-20">
           The autonomous <span className="text-zinc-500">pipeline.</span>

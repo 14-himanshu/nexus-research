@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { Lock, User as UserIcon, CheckCircle2, ChevronLeft } from 'lucide-react';
@@ -17,7 +18,7 @@ export function LoginPage() {
 
     setIsLoading(true);
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       const res = await fetch(`${baseUrl}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

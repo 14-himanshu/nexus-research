@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
@@ -24,7 +25,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
     setIsLoading(true);
     
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       const res = await fetch(`${baseUrl}/me/settings`, {
         method: 'POST',
         headers: { 
@@ -68,7 +69,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           <div className="space-y-3">
             <label className="text-sm font-medium text-zinc-300 flex items-center gap-2">
               <Key size={16} />
-              Google Gemini API Key
+              Groq API Key
             </label>
             <div className="relative">
               <input
@@ -76,11 +77,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-white placeholder-zinc-500 focus:outline-none focus:border-white/30 transition-colors font-mono text-sm"
-                placeholder="AIzaSy..."
+                placeholder="gsk_..."
               />
             </div>
             <p className="text-xs text-zinc-500">
-              Provide your own Google Gemini API key to avoid rate limits. It is stored securely in your private workspace.
+              Provide your own Groq API key to avoid rate limits. It is stored securely in your private workspace.
             </p>
           </div>
 

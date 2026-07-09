@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 interface User {
   id: number;
@@ -27,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Validate token and fetch user
       const fetchUser = async () => {
         try {
-          const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+          const baseUrl = API_BASE;
           const res = await fetch(`${baseUrl}/me`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });

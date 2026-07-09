@@ -2,7 +2,7 @@ import { Bot, Database, Lock, Code2 } from 'lucide-react';
 
 export function FeaturesGrid() {
   return (
-    <section className="relative z-10 py-32 px-6 bg-black">
+    <section id="features" className="relative z-10 py-32 px-6 bg-black">
       <div className="max-w-[1200px] mx-auto">
         <div className="mb-16 text-center md:text-left">
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-white mb-6">

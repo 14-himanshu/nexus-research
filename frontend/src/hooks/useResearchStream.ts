@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 
@@ -40,7 +41,7 @@ export function useResearchStream() {
   useEffect(() => {
     const checkHealth = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+        const baseUrl = API_BASE;
         const res = await fetch(`${baseUrl}/health`);
         if (res.ok) setBackendStatus('online');
         else setBackendStatus('offline');
@@ -104,7 +105,7 @@ export function useResearchStream() {
         { role: 'assistant', content: finalReport }
       ] : [];
 
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       const response = await fetch(`${baseUrl}/research`, {
         method: 'POST',
         headers: { 

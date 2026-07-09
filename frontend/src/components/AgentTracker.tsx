@@ -40,16 +40,20 @@ function AgentItem({
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
+    if (isWorking || isPending) {
+      setElapsed(0);
+    }
+  }, [isWorking, isPending]);
+
+  useEffect(() => {
     let interval: number;
     if (isWorking) {
       interval = window.setInterval(() => {
         setElapsed(prev => prev + 1);
       }, 1000);
-    } else if (isPending) {
-      setElapsed(0);
     }
     return () => clearInterval(interval);
-  }, [isWorking, isPending]);
+  }, [isWorking]);
 
   return (
     <div className="relative group lg:mb-1" title={TOOLTIPS[agentKey]}>

@@ -1,5 +1,9 @@
 import httpx
 import os
+import asyncio
+import logging
+
+logger = logging.getLogger(__name__)
 
 _JINA_API_KEY = os.getenv("JINA_API_KEY", "")
 
@@ -18,17 +22,21 @@ async def web_scraper(url: str, max_length: int = 10000) -> str:
     if _JINA_API_KEY:
         headers["Authorization"] = f"Bearer {_JINA_API_KEY}"
     
-    # We use a reasonably generous timeout since scraping takes time
-    try:
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.get(jina_url, headers=headers)
-            response.raise_for_status()
-            
-            content = response.text
-            # Truncate to prevent context overflow in LLMs
-            if len(content) > max_length:
-                return content[:max_length] + "\n\n...[Content Truncated]..."
-            return content
-    except Exception as e:
-        print(f"Error scraping {url}: {e}")
-        return f"Failed to scrape {url}. Error: {str(e)}"
+    retries = 3
+    for attempt in range(retries):
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(jina_url, headers=headers)
+                response.raise_for_status()
+                
+                content = response.text
+                if len(content) > max_length:
+                    return content[:max_length] + "\n\n...[Content Truncated]..."
+                return content
+        except Exception as e:
+            logger.error(f"Error scraping {url} (Attempt {attempt + 1}/{retries}): {e}")
+            if attempt < retries - 1:
+                await asyncio.sleep(2 ** attempt)
+            else:
+                return f"Failed to scrape {url}. Error: {str(e)}"
+    return ""

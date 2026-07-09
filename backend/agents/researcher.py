@@ -1,7 +1,10 @@
 import asyncio
+import logging
 from .state import AgentState
 from tools.web_search import web_search
 from tools.web_scraper import web_scraper
+
+logger = logging.getLogger(__name__)
 
 async def researcher_node(state: AgentState):
     current_iter = state.get("iteration_count", 0)
@@ -17,19 +20,16 @@ async def researcher_node(state: AgentState):
     if depth == "quick": max_res = 3
     elif depth == "deep": max_res = 10
     
-    print(f"Researcher executing query: {current_query} (depth: {depth})")
-    # Call Tavily search in a thread so it doesn't block the async event loop
+    logger.info(f"Researcher executing query: {current_query} (depth: {depth})")
     results = await asyncio.to_thread(web_search, current_query, max_results=max_res)
     
     formatted_results = []
     for r in results:
-        # We will attempt to scrape the top 2 results for deeper content
         url = r.get("url", "")
         content = r.get("content", "")
         
-        # Scrape only if we don't have enough content and it's one of the top 2
         if url and len(formatted_results) < 2:
-            print(f"Scraping deep content from: {url}")
+            logger.info(f"Scraping deep content from: {url}")
             scraped_content = await web_scraper(url, max_length=5000)
             if scraped_content and not scraped_content.startswith("Failed to scrape"):
                 content = scraped_content

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { API_BASE } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { Lock, User as UserIcon, LogIn, UserPlus } from 'lucide-react';
@@ -17,7 +18,7 @@ export function AuthModal() {
 
     setIsLoading(true);
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       const endpoint = isLogin ? '/login' : '/signup';
       
       const res = await fetch(`${baseUrl}${endpoint}`, {
