@@ -1,4 +1,5 @@
 import { Bot, Database, Lock, Code2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function FeaturesGrid() {
   return (
@@ -14,35 +15,59 @@ export function FeaturesGrid() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* Feature 1 (Large) */}
-          <div className="md:col-span-2 p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="md:col-span-2 p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden"
+          >
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             <Bot className="text-zinc-400 mb-6" size={28} />
             <h3 className="text-2xl font-semibold text-white mb-3">Multi-Agent State Machine</h3>
             <p className="text-zinc-400 font-light leading-relaxed max-w-md">
               Nexus doesn't use simple LLM chains. It utilizes LangGraph to create a cyclical state machine where Planner, Researcher, Fact-Checker, and Writer agents iteratively refine the output.
             </p>
-          </div>
+          </motion.div>
 
           {/* Feature 2 (Small) */}
-          <div className="p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden"
+          >
             <Database className="text-zinc-400 mb-6" size={28} />
             <h3 className="text-xl font-semibold text-white mb-3">Bring Your Own Key</h3>
             <p className="text-zinc-400 font-light leading-relaxed text-sm">
-              Connect your personal Gemini API key to avoid global rate limits and run unlimited deep research at cost.
+              Connect your personal Groq API key to avoid global rate limits and run unlimited deep research at cost.
             </p>
-          </div>
+          </motion.div>
 
           {/* Feature 3 (Small) */}
-          <div className="p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden"
+          >
             <Lock className="text-zinc-400 mb-6" size={28} />
             <h3 className="text-xl font-semibold text-white mb-3">Private Workspaces</h3>
             <p className="text-zinc-400 font-light leading-relaxed text-sm">
               Enterprise-grade security with isolated SQLite histories. Your research is strictly confidential.
             </p>
-          </div>
+          </motion.div>
 
           {/* Feature 4 (Large) */}
-          <div className="md:col-span-2 p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden flex flex-col justify-between">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="md:col-span-2 p-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 transition-colors group relative overflow-hidden flex flex-col justify-between"
+          >
             <div>
               <Code2 className="text-zinc-400 mb-6" size={28} />
               <h3 className="text-2xl font-semibold text-white mb-3">Developer-First Exports</h3>
@@ -59,7 +84,7 @@ massive shift towards silicon anodes.
 > Source: MIT Technology Review [1]`}
               </code></pre>
             </div>
-          </div>
+          </motion.div>
 
         </div>
       </div>

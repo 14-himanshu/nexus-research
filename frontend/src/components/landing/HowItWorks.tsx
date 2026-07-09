@@ -1,4 +1,5 @@
 import { Bot, CheckCircle2, Search, Edit3 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function HowItWorks() {
   const steps = [
@@ -33,13 +34,34 @@ export function HowItWorks() {
         
         <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-8 md:gap-0">
           {/* Connecting Line (Desktop) */}
-          <div className="hidden md:block absolute top-1/2 left-0 right-0 h-[2px] bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-rose-500/20 -translate-y-1/2 z-0" />
+          <div className="hidden md:block absolute top-1/2 left-0 right-0 h-[2px] bg-zinc-900 -translate-y-1/2 z-0" />
+          <motion.div 
+            initial={{ width: 0 }}
+            whileInView={{ width: '100%' }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
+            className="hidden md:block absolute top-1/2 left-0 h-[2px] bg-gradient-to-r from-blue-500 via-purple-500 to-rose-500 -translate-y-1/2 z-0" 
+          />
           
           {/* Connecting Line (Mobile) */}
-          <div className="block md:hidden absolute left-[39px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-blue-500/20 via-purple-500/20 to-rose-500/20 z-0" />
+          <div className="block md:hidden absolute left-[39px] top-0 bottom-0 w-[2px] bg-zinc-900 z-0" />
+          <motion.div 
+            initial={{ height: 0 }}
+            whileInView={{ height: '100%' }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
+            className="block md:hidden absolute left-[39px] top-0 w-[2px] bg-gradient-to-b from-blue-500 via-purple-500 to-rose-500 z-0" 
+          />
 
           {steps.map((step, idx) => (
-            <div key={idx} className="relative z-10 flex flex-row md:flex-col items-center md:text-center gap-6 md:gap-4 md:w-1/4 group">
+            <motion.div 
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: idx * 0.3 }}
+              className="relative z-10 flex flex-row md:flex-col items-center md:text-center gap-6 md:gap-4 md:w-1/4 group"
+            >
               <div className="w-20 h-20 rounded-2xl bg-[#09090b] border border-zinc-800 flex items-center justify-center shrink-0 group-hover:border-zinc-600 transition-colors shadow-2xl relative">
                 {step.icon}
                 <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl" />
@@ -50,7 +72,7 @@ export function HowItWorks() {
                   {step.desc}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

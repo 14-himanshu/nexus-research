@@ -25,12 +25,14 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const [history, setHistory] = useState<Array<{id: number, query: string, depth: string, created_at: string}>>([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (showHistory && token) {
       const fetchHistory = async () => {
+        setIsLoadingHistory(true);
         try {
           const baseUrl = API_BASE;
           const res = await fetch(`${baseUrl}/history`, {
@@ -42,6 +44,8 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
           }
         } catch (e) {
           console.error("Failed to load history", e);
+        } finally {
+          setIsLoadingHistory(false);
         }
       };
       fetchHistory();
@@ -59,6 +63,19 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
     window.addEventListener('keydown', handleGlobalKeyDown);
     return () => window.removeEventListener('keydown', handleGlobalKeyDown);
   }, []);
+
+  // ⌘1, ⌘2, ⌘3 for depth
+  useEffect(() => {
+    const handleDepthShortcut = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && !isSearching) {
+        if (e.key === '1') { e.preventDefault(); setDepth('quick'); }
+        if (e.key === '2') { e.preventDefault(); setDepth('standard'); }
+        if (e.key === '3') { e.preventDefault(); setDepth('deep'); }
+      }
+    };
+    window.addEventListener('keydown', handleDepthShortcut);
+    return () => window.removeEventListener('keydown', handleDepthShortcut);
+  }, [isSearching]);
 
   // Cycle placeholders
   useEffect(() => {
@@ -192,32 +209,43 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
         </div>
 
         {/* History Dropdown showing UPWARDS */}
-        {showHistory && history.length > 0 && !query && (
+        {showHistory && (history.length > 0 || isLoadingHistory) && !query && (
           <div className="absolute bottom-[calc(100%+12px)] left-0 right-0 glass-panel rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
             <div className="px-4 py-2.5 text-[10px] font-bold text-zinc-500 uppercase tracking-widest border-b border-white/5 flex justify-between items-center">
               <span>Recent Searches</span>
             </div>
             <ul className="max-h-[300px] overflow-y-auto">
-              {history.map((h, i) => (
-                <li key={i} className="group/item flex items-center border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                  <button
-                    type="button"
-                    onClick={() => handleHistoryClick(h)}
-                    className="flex-1 text-left px-4 py-3 text-[14px] text-zinc-300 flex items-center gap-3"
-                  >
-                    <Clock size={14} className="text-zinc-500 shrink-0" />
-                    <span className="truncate">{h.query}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => handleDeleteHistory(e, h.id)}
-                    className="p-3 text-zinc-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all"
-                    title="Delete from history"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </li>
-              ))}
+              {isLoadingHistory ? (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <li key={i} className="flex items-center border-b border-white/5 last:border-0 px-4 py-3">
+                      <div className="w-3.5 h-3.5 rounded-full bg-white/10 animate-pulse mr-3 shrink-0" />
+                      <div className="h-4 bg-white/10 rounded animate-pulse w-3/4" />
+                    </li>
+                  ))}
+                </>
+              ) : (
+                history.map((h, i) => (
+                  <li key={i} className="group/item flex items-center border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => handleHistoryClick(h)}
+                      className="flex-1 text-left px-4 py-3 text-[14px] text-zinc-300 flex items-center gap-3"
+                    >
+                      <Clock size={14} className="text-zinc-500 shrink-0" />
+                      <span className="truncate">{h.query}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteHistory(e, h.id)}
+                      className="p-3 text-zinc-500 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all"
+                      title="Delete from history"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </li>
+                ))
+              )}
             </ul>
           </div>
         )}

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { API_BASE } from '../lib/api';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
@@ -21,9 +23,14 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
   const { token } = useAuth();
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [paperMode, setPaperMode] = useState(false);
+  const [paperMode, setPaperMode] = useState(() => localStorage.getItem('paperMode') === 'true');
   const [rating, setRating] = useState<number | null>(null);
+  const [activeId, setActiveId] = useState<string>('');
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    localStorage.setItem('paperMode', String(paperMode));
+  }, [paperMode]);
 
   useEffect(() => {
     if (content.length < 50 && scrollRef.current) {
@@ -52,6 +59,31 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
     }));
   }, [content]);
 
+  useEffect(() => {
+    if (!headings.length) return;
+    
+    // Slight delay to allow DOM to render headings
+    const timer = setTimeout(() => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          const intersecting = entries.find(entry => entry.isIntersecting);
+          if (intersecting) {
+            setActiveId(intersecting.target.id);
+          }
+        },
+        { rootMargin: '-20% 0px -60% 0px' }
+      );
+
+      headings.forEach((h) => {
+        const el = document.getElementById(h.id);
+        if (el) observer.observe(el);
+      });
+
+      return () => observer.disconnect();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [headings, content]);
+
   if (!content) return null;
 
   const words = content.trim().split(/\s+/).length;
@@ -69,7 +101,50 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
     }
   };
 
-  const handlePrint = () => window.print();
+  const handlePrint = async () => {
+    if (!scrollRef.current) return;
+    
+    // If in paper mode, default print dialog is often better formatted for actual paper.
+    // But for a "Real PDF Export", we use jsPDF.
+    toast.loading("Generating PDF...", { id: "pdf-toast" });
+    try {
+      // Temporarily expand height for html2canvas
+      const originalHeight = scrollRef.current.style.height;
+      const originalOverflow = scrollRef.current.style.overflow;
+      scrollRef.current.style.height = 'auto';
+      scrollRef.current.style.overflow = 'visible';
+
+      const canvas = await html2canvas(scrollRef.current, { scale: 2, useCORS: true, logging: false });
+      
+      // Restore
+      scrollRef.current.style.height = originalHeight;
+      scrollRef.current.style.overflow = originalOverflow;
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`Nexus_Report_${reportId || 'Export'}.pdf`);
+      toast.success("PDF Exported Successfully", { id: "pdf-toast" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to generate PDF", { id: "pdf-toast" });
+    }
+  };
 
   const handleRate = async (val: number) => {
     if (!reportId) return;
@@ -138,7 +213,11 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
                     e.preventDefault();
                     document.getElementById(h.id)?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className={`text-sm transition-colors opacity-70 hover:opacity-100 ${
+                  className={`text-sm transition-colors ${
+                    activeId === h.id 
+                      ? (paperMode ? 'opacity-100 font-bold text-zinc-900' : 'opacity-100 font-bold text-white')
+                      : 'opacity-50 hover:opacity-100'
+                  } ${
                     h.level === 3 ? 'ml-3 text-xs' : 'font-medium'
                   }`}
                 >

@@ -54,7 +54,8 @@ pip install -r requirements.txt
 # Set up environment variables
 cp .env.example .env
 ```
-Edit the `.env` file and add your `GEMINI_API_KEY` and `TAVILY_API_KEY`.
+Edit the `.env` file and add your `GEMINI_API_KEY` (or `GROQ_API_KEY`) and `TAVILY_API_KEY`.
+*Note: Changing configuration variables like `MAX_RESEARCH_ITERATIONS` requires a full backend server restart to take effect.*
 
 Start the backend server:
 ```bash

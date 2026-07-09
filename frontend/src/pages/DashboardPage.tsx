@@ -10,8 +10,9 @@ import { DashboardHeader } from '../components/dashboard/DashboardHeader';
 import { EmptyState } from '../components/dashboard/EmptyState';
 
 export function DashboardPage() {
-  const { user, logout, isLoading } = useAuth();
+  const { user, logout, isLoading, token } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
+  const [totalReports, setTotalReports] = useState<number>(0);
 
   const {
     agents,
@@ -56,6 +57,7 @@ export function DashboardPage() {
             onSettingsClick={() => setShowSettings(true)} 
             onLogout={logout} 
             lastQuery={lastQuery}
+            totalReports={totalReports}
           />
       )}
 

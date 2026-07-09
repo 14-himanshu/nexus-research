@@ -56,7 +56,12 @@ function AgentItem({
   }, [isWorking]);
 
   return (
-    <div className="relative group lg:mb-1" title={TOOLTIPS[agentKey]}>
+    <div className="relative group lg:mb-1" tabIndex={0}>
+      {/* Custom Tooltip */}
+      <div className="absolute lg:left-full lg:top-1/2 lg:-translate-y-1/2 lg:ml-4 left-0 -top-12 lg:-top-auto opacity-0 invisible group-hover:opacity-100 group-hover:visible focus:opacity-100 focus:visible active:opacity-100 active:visible transition-all bg-[#09090b] border border-white/10 text-zinc-300 text-[11px] px-3 py-2 rounded-lg z-50 shadow-xl w-64 pointer-events-none">
+        {TOOLTIPS[agentKey]}
+      </div>
+      
       {/* Visual connecting line */}
       {!isLast && (
         <div className={`hidden lg:block absolute left-[19px] top-[40px] bottom-[-12px] w-[2px] z-0 transition-colors duration-500 ${
@@ -107,7 +112,7 @@ function AgentItem({
             </h4>
             {isWorking && (
               <span className="text-xs font-mono text-zinc-400 font-medium shrink-0 ml-2">
-                {elapsed}s
+                {elapsed >= 60 ? `${Math.floor(elapsed / 60)}m ${elapsed % 60}s` : `${elapsed}s`}
               </span>
             )}
           </div>
