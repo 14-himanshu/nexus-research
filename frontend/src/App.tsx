@@ -1,11 +1,17 @@
-import React, { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useResearchStream } from './hooks/useResearchStream';
 import { ChatInput } from './components/ChatInput';
 import { AgentTracker } from './components/AgentTracker';
 import { ResearchReport } from './components/ResearchReport';
-import { Sparkles, RefreshCw } from 'lucide-react';
+import { Sparkles, RefreshCw, LogOut, Settings } from 'lucide-react';
+import { AuthModal } from './components/AuthModal';
+import { SettingsModal } from './components/SettingsModal';
+import { useAuth } from './context/AuthContext';
 
 function App() {
+  const { user, logout, isLoading } = useAuth();
+  const [showSettings, setShowSettings] = useState(false);
+
   const {
     agents,
     reportTokens,
@@ -21,16 +27,27 @@ function App() {
     totalTime
   } = useResearchStream();
 
-  let statusPill = { color: 'bg-green-500', text: 'Agent Ready' };
-  if (backendStatus === 'offline') statusPill = { color: 'bg-red-500', text: 'Backend Offline' };
-  else if (backendStatus === 'checking') statusPill = { color: 'bg-yellow-500', text: 'Checking...' };
-  else if (isSearching) statusPill = { color: 'bg-amber-500', text: 'Researching...' };
-
   useEffect(() => {
     if (isSearching) document.title = 'Researching... | Multi-Agent AI';
     else if (finalReport) document.title = 'Report Ready | Multi-Agent AI';
     else document.title = 'Multi-Agent Research AI';
   }, [isSearching, finalReport]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#09090b] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <AuthModal />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#09090b] text-zinc-300 font-sans flex flex-col relative overflow-hidden">
@@ -38,22 +55,43 @@ function App() {
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-white/[0.02] blur-[120px] rounded-full pointer-events-none" />
 
       {/* Header */}
-      <header className="w-full px-6 py-4 flex justify-between items-center relative z-20 bg-[#09090b]/80 backdrop-blur-md border-b border-white/5 print:hidden">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-            <Sparkles size={16} className="text-[#09090b]" />
+      <header className="px-6 sm:px-10 py-6 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.location.reload()}>
+          <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center font-bold text-xl shadow-[0_0_20px_rgba(255,255,255,0.1)]">
+            N
           </div>
-          <h1 className="text-lg font-bold tracking-tight text-white">
-            Multi-Agent
-          </h1>
+          <h1 className="text-xl font-bold tracking-tight text-white hidden sm:block">Nexus <span className="text-zinc-500 font-medium">Research</span></h1>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-[11px] bg-white/5 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-md">
-            <div className={`w-1.5 h-1.5 rounded-full ${statusPill.color} ${isSearching ? 'animate-pulse shadow-[0_0_8px_currentColor]' : ''}`}></div>
-            <span className="text-zinc-400 font-medium tracking-wider uppercase">{statusPill.text}</span>
+        
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/5 text-xs font-medium">
+            <div className={`w-2 h-2 rounded-full ${backendStatus === 'online' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.4)]' : backendStatus === 'checking' ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
+            <span className={backendStatus === 'online' ? 'text-zinc-300' : 'text-zinc-500'}>
+              {backendStatus === 'online' ? 'Systems Nominal' : backendStatus === 'checking' ? 'Connecting...' : 'Backend Offline'}
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-3 border-l border-white/10 pl-6">
+            <span className="text-sm font-medium text-zinc-300">{user.username}</span>
+            <button 
+              onClick={() => setShowSettings(true)}
+              className="p-2 rounded-xl text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
+              title="Settings"
+            >
+              <Settings size={18} />
+            </button>
+            <button 
+              onClick={logout}
+              className="p-2 rounded-xl text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </header>
+
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
 
       {/* Main Workspace */}
       <main className="flex-1 relative w-full max-w-[1600px] mx-auto flex flex-col">
