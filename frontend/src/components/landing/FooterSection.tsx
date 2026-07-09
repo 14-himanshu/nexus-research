@@ -53,7 +53,7 @@ export function FooterSection() {
             {/* Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-7 h-7 bg-white text-black rounded-lg flex items-center justify-center font-bold text-sm">N</div>
+                <img src="/favicon.svg" alt="Nexus Logo" className="w-7 h-7 drop-shadow-md" />
                 <span className="text-[14px] font-bold text-white">Nexus</span>
               </div>
               <p className="text-[13px] text-zinc-600 leading-relaxed">

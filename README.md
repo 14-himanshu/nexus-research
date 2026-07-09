@@ -22,8 +22,9 @@ Nexus Research is an enterprise-grade AI research assistant that doesn't just an
 ## 🛠️ Tech Stack
 
 - **Backend AI Engine**: Python, FastAPI, LangGraph, LangChain, Google Gemini 1.5 Pro.
-- **Database**: SQLite (via `aiosqlite`) for fast, local storage.
+- **Database**: PostgreSQL (via `psycopg2`) for scalable, production-grade storage.
 - **Frontend**: React (Vite), TypeScript, TailwindCSS, Framer Motion for beautiful micro-animations.
+- **DevOps**: Docker, GitHub Actions CI, Vercel (Frontend), Render (Backend).
 
 ---
 
@@ -54,8 +55,10 @@ pip install -r requirements.txt
 # Set up environment variables
 cp .env.example .env
 ```
-Edit the `.env` file and add your `GEMINI_API_KEY` (or `GROQ_API_KEY`) and `TAVILY_API_KEY`.
-*Note: Changing configuration variables like `MAX_RESEARCH_ITERATIONS` requires a full backend server restart to take effect.*
+Edit the `.env` file and add your API keys:
+- `GROQ_API_KEY` (or `GEMINI_API_KEY`)
+- `TAVILY_API_KEY`
+- `DATABASE_URL` (e.g. your Neon or Supabase connection string)
 
 Start the backend server:
 ```bash
@@ -76,6 +79,17 @@ npm install
 npm run dev
 ```
 *The frontend will run on `http://localhost:5173`. Open this URL in your browser.*
+
+---
+
+## ☁️ Deployment
+
+Nexus Research is fully configured for professional, free-tier deployment using a standard DevOps pipeline.
+
+1. **Frontend (Vercel)**: Import the repository to Vercel. Add `VITE_BACKEND_URL` pointing to your deployed backend URL.
+2. **Backend (Render)**: Use the provided `render.yaml` Blueprint to automatically provision the backend service. Make sure to add all environment variables (API keys, `DATABASE_URL`) in the Render dashboard.
+3. **Database (Neon/Supabase)**: Create a free serverless Postgres database and copy the connection string.
+4. **CI/CD**: The included `.github/workflows/ci.yml` will automatically verify your frontend types and backend linting on every push to `main`.
 
 ---
 
