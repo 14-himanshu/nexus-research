@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { API_BASE } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
-import { Lock, User as UserIcon, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { Lock, User as UserIcon, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 export function LoginPage() {
@@ -18,25 +18,19 @@ export function LoginPage() {
 
     setIsLoading(true);
     try {
-      const baseUrl = API_BASE;
-      const res = await fetch(`${baseUrl}/login`, {
+      const res = await fetch(`${API_BASE}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
       });
-      
       const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.detail || 'Authentication failed');
-      }
+      if (!res.ok) throw new Error(data.detail || 'Authentication failed');
 
-      // Fetch user profile
-      const userRes = await fetch(`${baseUrl}/me`, {
-        headers: { 'Authorization': `Bearer ${data.access_token}` }
+      const userRes = await fetch(`${API_BASE}/me`, {
+        headers: { 'Authorization': `Bearer ${data.access_token}` },
       });
       const userData = await userRes.json();
-      
+
       login(data.access_token, userData);
       toast.success('Welcome back!');
       navigate('/dashboard');
@@ -48,78 +42,63 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex font-sans selection:bg-zinc-800">
-      
-      {/* Left Column (Brand/Value Prop) */}
-      <div className="hidden lg:flex flex-col flex-1 bg-zinc-900 border-r border-zinc-800 p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-transparent to-transparent" />
-        
-        <div className="relative z-10 flex items-center gap-3 mb-16">
-          <div className="w-10 h-10 bg-white text-black rounded-xl flex items-center justify-center font-bold text-xl">
+    <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center relative overflow-hidden">
+      {/* Background glows */}
+      <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-indigo-600/8 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-600/8 blur-[100px] rounded-full pointer-events-none" />
+
+      {/* Back link */}
+      <Link
+        to="/"
+        className="absolute top-6 left-6 flex items-center gap-2 text-[13px] font-medium text-zinc-500 hover:text-white transition-colors duration-200"
+      >
+        <ArrowLeft size={15} />
+        Back
+      </Link>
+
+      {/* Card */}
+      <div className="w-full max-w-[400px] mx-4">
+        {/* Brand */}
+        <div className="text-center mb-8">
+          <div
+            className="inline-flex w-11 h-11 bg-white text-black rounded-xl items-center justify-center font-bold text-xl shadow-xl shadow-white/10 mb-5 mx-auto"
+          >
             N
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">Nexus</span>
+          <h1 className="text-2xl font-bold text-white tracking-tight mb-1.5">Welcome back</h1>
+          <p className="text-zinc-500 text-[14px]">Sign in to your Nexus workspace</p>
         </div>
 
-        <div className="relative z-10 mt-auto">
-          <h2 className="text-4xl font-bold tracking-tight text-white mb-6 leading-tight">
-            The autonomous <br/>research platform
-          </h2>
-          <div className="space-y-4">
-            {[
-              "Multi-agent graph architecture",
-              "BYOK (Bring Your Own Key) for unlimited use",
-              "Private, secure workspaces",
-              "Beautiful markdown & PDF exports"
-            ].map((feature, i) => (
-              <div key={i} className="flex items-center gap-3 text-zinc-400">
-                <CheckCircle2 size={20} className="text-emerald-500" />
-                <span className="font-medium text-[15px]">{feature}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Right Column (Form) */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-        <Link to="/" className="absolute top-8 left-8 text-zinc-500 hover:text-white flex items-center gap-2 transition-colors text-sm font-medium">
-          <ChevronLeft size={16} />
-          Back to home
-        </Link>
-        
-        <div className="w-full max-w-sm">
-          <div className="mb-8 text-center lg:text-left">
-            <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Log in to Nexus</h1>
-            <p className="text-zinc-400">Enter your details to access your workspace.</p>
-          </div>
-
+        {/* Form Card */}
+        <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-7 backdrop-blur-xl shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Username */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Username</label>
+              <label className="text-[13px] font-medium text-zinc-400">Username</label>
               <div className="relative">
-                <UserIcon size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <UserIcon size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600" />
                 <input
                   type="text"
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors"
-                  placeholder="Enter username"
+                  onChange={e => setUsername(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl py-3 pl-10 pr-4 text-[14px] text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.06] transition-all duration-200"
+                  placeholder="your_username"
                   autoComplete="username"
                   required
                 />
               </div>
             </div>
-            
+
+            {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-zinc-300">Password</label>
+              <label className="text-[13px] font-medium text-zinc-400">Password</label>
               <div className="relative">
-                <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                <Lock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600" />
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 pl-10 pr-4 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-500 transition-colors"
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl py-3 pl-10 pr-4 text-[14px] text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.06] transition-all duration-200"
                   placeholder="••••••••"
                   autoComplete="current-password"
                   required
@@ -127,39 +106,31 @@ export function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between mt-2">
-              <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer hover:text-zinc-300 transition-colors">
-                <input type="checkbox" className="rounded border-zinc-800 bg-zinc-900 text-white focus:ring-0" />
-                Remember me
-              </label>
-              <a href="#" className="text-sm text-zinc-500 hover:text-white transition-colors cursor-not-allowed">
-                Forgot password?
-              </a>
-            </div>
-
+            {/* Submit */}
             <button
               type="submit"
               disabled={isLoading || !username || !password}
-              className="w-full py-3 mt-6 bg-white text-black font-semibold rounded-xl hover:bg-zinc-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-3 mt-2 bg-white text-black font-semibold rounded-xl hover:bg-zinc-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-[14px] shadow-lg shadow-white/10"
             >
               {isLoading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                  Signing in...
-                </>
+                <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
               ) : (
-                'Sign in'
+                <>
+                  Sign in
+                  <ArrowRight size={15} />
+                </>
               )}
             </button>
           </form>
-
-          <div className="mt-8 text-center text-sm text-zinc-400">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-white font-medium hover:underline">
-              Sign up
-            </Link>
-          </div>
         </div>
+
+        {/* Footer */}
+        <p className="text-center text-[13px] text-zinc-600 mt-6">
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-zinc-300 hover:text-white font-medium transition-colors">
+            Create one →
+          </Link>
+        </p>
       </div>
     </div>
   );

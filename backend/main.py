@@ -20,8 +20,10 @@ from graph import research_graph
 from auth import get_current_user, create_access_token, get_password_hash, verify_password
 from database import (
     create_user, get_user_by_username, get_user_by_id, update_user_settings,
-    save_report, get_history, get_report, delete_report, update_rating
+    save_report, get_history, get_report, delete_report, update_rating,
+    create_collection, get_collections, delete_collection, update_report_collection
 )
+from typing import Optional
 
 app = FastAPI(title="Multi-Agent Research API")
 
@@ -46,6 +48,12 @@ class UserCreate(BaseModel):
 class SettingsUpdate(BaseModel):
     gemini_api_key: str
 
+class CollectionCreate(BaseModel):
+    name: str
+
+class ReportCollectionUpdate(BaseModel):
+    collection_id: int | None
+
 class ChatMessage(BaseModel):
     role: str
     content: str
@@ -54,6 +62,7 @@ class ResearchRequest(BaseModel):
     query: str
     depth: str = "standard"
     chat_history: list[ChatMessage] = []
+    collection_id: int | None = None
 
     @field_validator('query')
     @classmethod
@@ -77,7 +86,7 @@ async def signup(user: UserCreate):
     user_id = create_user(user.username, hashed)
     if not user_id:
         raise HTTPException(status_code=400, detail="Username already exists")
-    token = create_access_token({"sub": user_id})
+    token = create_access_token({"sub": str(user_id)})
     return {"access_token": token, "token_type": "bearer"}
 
 @app.post("/login")
@@ -85,7 +94,7 @@ async def login(user: UserCreate):
     db_user = get_user_by_username(user.username)
     if not db_user or not verify_password(user.password, db_user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    token = create_access_token({"sub": db_user["id"]})
+    token = create_access_token({"sub": str(db_user["id"])})
     return {"access_token": token, "token_type": "bearer"}
 
 @app.get("/me")
@@ -100,7 +109,26 @@ async def update_settings(settings: SettingsUpdate, user_id: int = Depends(get_c
     update_user_settings(user_id, settings.gemini_api_key)
     return {"status": "success"}
 
-async def generate_sse_events(user_id: int, query: str, depth: str, chat_history: list = []):
+@app.get("/collections")
+async def fetch_collections(user_id: int = Depends(get_current_user)):
+    return get_collections(user_id)
+
+@app.post("/collections")
+async def add_collection(collection: CollectionCreate, user_id: int = Depends(get_current_user)):
+    cid = create_collection(user_id, collection.name)
+    return {"id": cid, "name": collection.name}
+
+@app.delete("/collections/{collection_id}")
+async def remove_collection(collection_id: int, user_id: int = Depends(get_current_user)):
+    delete_collection(user_id, collection_id)
+    return {"status": "success"}
+
+@app.patch("/history/{report_id}/collection")
+async def patch_report_collection(report_id: int, update: ReportCollectionUpdate, user_id: int = Depends(get_current_user)):
+    update_report_collection(user_id, report_id, update.collection_id)
+    return {"status": "success"}
+
+async def generate_sse_events(user_id: int, query: str, depth: str, chat_history: list = [], collection_id: int | None = None):
     try:
         user = get_user_by_id(user_id)
         user_api_key = user.get("gemini_api_key") if user else None
@@ -155,7 +183,7 @@ async def generate_sse_events(user_id: int, query: str, depth: str, chat_history
                 if event.get("name") == "writer":
                     final_report = event.get("data", {}).get("output", {}).get("final_report", "")
                     if final_report:
-                        report_id = save_report(user_id, query, final_report, depth)
+                        report_id = save_report(user_id, query, final_report, depth, collection_id)
                         data = json.dumps({"report": final_report, "id": report_id})
                         yield f"event: done\ndata: {data}\n\n"
                         
@@ -176,8 +204,8 @@ async def health():
     return {"status": "ok", "version": "2.0"}
 
 @app.get("/history")
-async def fetch_history(user_id: int = Depends(get_current_user)):
-    return get_history(user_id=user_id, limit=20)
+async def fetch_history(collection_id: Optional[int] = None, user_id: int = Depends(get_current_user)):
+    return get_history(user_id=user_id, collection_id=collection_id, limit=50)
 
 @app.get("/history/{report_id}")
 async def fetch_report(report_id: int, user_id: int = Depends(get_current_user)):
@@ -201,7 +229,7 @@ async def rate_report(report_id: int, request: Request, user_id: int = Depends(g
 @app.post("/research")
 @limiter.limit("10/minute")
 async def research_endpoint(request: Request, body: ResearchRequest, user_id: int = Depends(get_current_user)):
-    return StreamingResponse(generate_sse_events(user_id, body.query, body.depth, body.chat_history), media_type="text/event-stream")
+    return StreamingResponse(generate_sse_events(user_id, body.query, body.depth, body.chat_history, body.collection_id), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn
