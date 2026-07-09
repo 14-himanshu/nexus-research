@@ -53,7 +53,7 @@ export function HeroSection() {
           target="_blank" rel="noreferrer"
           className="flex items-center gap-2 px-6 py-3 bg-zinc-900 text-white text-sm font-medium rounded-md border border-zinc-800 hover:bg-zinc-800 transition-all"
         >
-          View Documentation
+          View on GitHub
         </a>
       </motion.div>
 
@@ -83,7 +83,12 @@ export function HeroSection() {
             <div className="max-w-3xl mx-auto space-y-6">
               
               {/* Planner Status */}
-              <div className="flex gap-4">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.8 }}
+                className="flex gap-4"
+              >
                 <div className="w-8 h-8 rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center shrink-0">
                   <Bot size={16} className="text-blue-400" />
                 </div>
@@ -91,13 +96,25 @@ export function HeroSection() {
                   <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider font-bold text-zinc-500">
                     <CheckCircle2 size={12} className="text-emerald-500" /> PLANNER GENERATED 4 STEPS
                   </div>
-                  <div className="h-3 bg-zinc-800 rounded w-full" />
+                  <div className="h-3 bg-zinc-800 rounded w-full overflow-hidden">
+                    <motion.div 
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '100%' }}
+                      transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                      className="w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                    />
+                  </div>
                   <div className="h-3 bg-zinc-800 rounded w-11/12" />
                 </div>
-              </div>
+              </motion.div>
 
               {/* Fact Checker Status */}
-              <div className="flex gap-4">
+              <motion.div 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 1.4 }}
+                className="flex gap-4"
+              >
                 <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0">
                   <Bot size={16} className="text-orange-400" />
                 </div>
@@ -110,17 +127,29 @@ export function HeroSection() {
                     <span className="text-xs font-mono text-emerald-400 truncate">https://nature.com/articles/s41586-023...</span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
 
               {/* Output Preview */}
-              <div className="mt-8 pt-8 border-t border-zinc-800">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 2.0 }}
+                className="mt-8 pt-8 border-t border-zinc-800"
+              >
                 <h3 className="text-xl font-bold text-white mb-4">The Future of Solid-State Batteries</h3>
                 <p className="text-zinc-400 text-sm leading-relaxed mb-4">
                   The state of solid-state batteries in 2026 indicates a massive shift towards silicon anodes, enabling a 40% increase in energy density compared to traditional lithium-ion architectures.
                 </p>
-                <div className="h-2 bg-zinc-800 rounded w-3/4 mb-2" />
+                <div className="h-2 bg-zinc-800 rounded w-3/4 mb-2 overflow-hidden">
+                   <motion.div 
+                      initial={{ x: '-100%' }}
+                      animate={{ x: '100%' }}
+                      transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                      className="w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent"
+                    />
+                </div>
                 <div className="h-2 bg-zinc-800 rounded w-1/2" />
-              </div>
+              </motion.div>
 
             </div>
           </div>

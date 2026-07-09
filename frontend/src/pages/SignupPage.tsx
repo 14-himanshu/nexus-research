@@ -73,10 +73,10 @@ export function SignupPage() {
           </h2>
           <div className="space-y-4">
             {[
-              "Join 50+ teams doing deep research",
-              "Connect your personal API keys",
-              "Generate endless markdown reports",
-              "Fact-checking included"
+              "Deploy autonomous AI research agents",
+              "Bypass rate limits with BYOK architecture",
+              "Export beautifully formatted Markdown reports",
+              "Enterprise-grade SQLite privacy"
             ].map((feature, i) => (
               <div key={i} className="flex items-center gap-3 text-zinc-400">
                 <CheckCircle2 size={20} className="text-purple-500" />

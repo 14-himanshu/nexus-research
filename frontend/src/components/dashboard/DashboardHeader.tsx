@@ -7,9 +7,10 @@ interface DashboardHeaderProps {
   onSettingsClick: () => void;
   onLogout: () => void;
   lastQuery: string;
+  totalReports?: number;
 }
 
-export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout, lastQuery }: DashboardHeaderProps) {
+export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout, lastQuery, totalReports }: DashboardHeaderProps) {
   const navigate = useNavigate();
 
   return (
@@ -42,7 +43,12 @@ export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout
                 <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs font-bold border border-blue-500/20">
                     {user.username.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm font-medium text-zinc-300">{user.username}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-zinc-300 leading-none">{user.username}</span>
+                  {totalReports !== undefined && (
+                    <span className="text-[10px] text-zinc-500 font-mono mt-0.5">{totalReports} reports</span>
+                  )}
+                </div>
             </div>
             <button 
                 onClick={onSettingsClick}
@@ -52,7 +58,7 @@ export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout
                 <Settings size={16} />
             </button>
             <button 
-                onClick={onLogout}
+                onClick={() => { if (window.confirm("Are you sure you want to log out?")) onLogout(); }}
                 className="p-2 rounded-lg text-zinc-500 hover:text-white hover:bg-white/10 transition-colors"
                 title="Sign Out"
             >

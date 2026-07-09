@@ -65,7 +65,7 @@ export function FooterSection() {
         </div>
         
         <div className="max-w-[1200px] mx-auto mt-16 pt-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-600 font-medium">
-          <p>© 2026 Nexus Research. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Nexus Research. All rights reserved.</p>
           <div className="flex gap-6">
             <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-zinc-400">Privacy Policy</a>
             <a href="#" onClick={(e) => e.preventDefault()} className="hover:text-zinc-400">Terms of Service</a>
