@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { API_BASE } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { Lock, User as UserIcon, Mail, CheckCircle2, ChevronLeft } from 'lucide-react';
@@ -23,7 +24,7 @@ export function SignupPage() {
 
     setIsLoading(true);
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       const res = await fetch(`${baseUrl}/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

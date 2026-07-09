@@ -1,13 +1,19 @@
 import json
 import asyncio
+import logging
 from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 import os
 
-# Load env before importing graph so API keys are ready
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 load_dotenv()
 
 from graph import research_graph
@@ -18,6 +24,10 @@ from database import (
 )
 
 app = FastAPI(title="Multi-Agent Research API")
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "*")
 
@@ -36,10 +46,30 @@ class UserCreate(BaseModel):
 class SettingsUpdate(BaseModel):
     gemini_api_key: str
 
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
 class ResearchRequest(BaseModel):
     query: str
     depth: str = "standard"
-    chat_history: list = []
+    chat_history: list[ChatMessage] = []
+
+    @field_validator('query')
+    @classmethod
+    def query_not_empty(cls, v):
+        if len(v.strip()) < 3:
+            raise ValueError('Query too short')
+        if len(v) > 2000:
+            raise ValueError('Query too long (max 2000 chars)')
+        return v.strip()
+
+    @field_validator('depth')
+    @classmethod
+    def valid_depth(cls, v):
+        if v not in ['quick', 'standard', 'deep']:
+            raise ValueError('depth must be quick, standard, or deep')
+        return v
 
 @app.post("/signup")
 async def signup(user: UserCreate):
@@ -72,10 +102,14 @@ async def update_settings(settings: SettingsUpdate, user_id: int = Depends(get_c
 
 async def generate_sse_events(user_id: int, query: str, depth: str, chat_history: list = []):
     try:
+        user = get_user_by_id(user_id)
+        user_api_key = user.get("gemini_api_key") if user else None
+
         initial_state = {
             "user_query": query,
             "depth": depth,
-            "messages": chat_history
+            "messages": chat_history,
+            "user_api_key": user_api_key or ""
         }
         
         async for event in research_graph.astream_events(initial_state, version="v1"):
@@ -102,7 +136,7 @@ async def generate_sse_events(user_id: int, query: str, depth: str, chat_history
                             elif node_name == "writer":
                                 status_msg = "Synthesizing verified facts into final report..."
                     except Exception as e:
-                        print(f"Error parsing event input: {e}")
+                        logger.error(f"Error parsing event input: {e}")
 
                     data = json.dumps({"agent": node_name, "status": status_msg})
                     yield f"event: agent_update\ndata: {data}\n\n"
@@ -126,10 +160,10 @@ async def generate_sse_events(user_id: int, query: str, depth: str, chat_history
                         yield f"event: done\ndata: {data}\n\n"
                         
     except asyncio.CancelledError:
-        print("Client disconnected, cancelling research task.")
+        logger.info("Client disconnected, cancelling research task.")
         raise
     except Exception as e:
-        print(f"Error in research graph: {e}")
+        logger.error(f"Error in research graph: {e}")
         error_data = json.dumps({"error": str(e)})
         yield f"event: error\ndata: {error_data}\n\n"
 
@@ -165,8 +199,9 @@ async def rate_report(report_id: int, request: Request, user_id: int = Depends(g
     return {"status": "success"}
 
 @app.post("/research")
-async def research_endpoint(request: ResearchRequest, user_id: int = Depends(get_current_user)):
-    return StreamingResponse(generate_sse_events(user_id, request.query, request.depth, request.chat_history), media_type="text/event-stream")
+@limiter.limit("10/minute")
+async def research_endpoint(request: Request, body: ResearchRequest, user_id: int = Depends(get_current_user)):
+    return StreamingResponse(generate_sse_events(user_id, body.query, body.depth, body.chat_history), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn

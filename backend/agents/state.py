@@ -14,6 +14,8 @@ def append_results(existing: list, new: list | str):
 
 class AgentState(TypedDict):
     user_query: str                  # The original question from the user
+    user_api_key: str                # User's BYOK API Key (can be empty string)
+    depth: str                       # Search depth (quick, standard, deep)
     research_plan: List[str]         # Planner's list of sub-questions
     
     # Use Annotated with a reducer so each agent can safely append to these lists

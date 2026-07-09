@@ -1,4 +1,5 @@
 import { LogOut, Settings } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardHeaderProps {
   user: { username: string; [key: string]: any };
@@ -9,9 +10,11 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout, lastQuery }: DashboardHeaderProps) {
+  const navigate = useNavigate();
+
   return (
     <header className="px-6 sm:px-10 py-4 flex items-center justify-between border-b border-white/5 bg-white/[0.02]">
-      <div className="flex items-center gap-4 cursor-pointer" onClick={() => window.location.reload()}>
+      <div className="flex items-center gap-4 cursor-pointer" onClick={() => navigate('/dashboard')}>
         <div className="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold shadow-[0_0_20px_rgba(255,255,255,0.1)]">
           N
         </div>

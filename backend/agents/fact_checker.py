@@ -1,7 +1,10 @@
 import json
+import logging
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_groq import ChatGroq
 from .state import AgentState
+
+logger = logging.getLogger(__name__)
 
 FACT_CHECKER_PROMPT = """You are a rigorous Fact-Checker. Review the raw search results below.
 Extract the most important, relevant facts answering the user's original query.
@@ -10,16 +13,13 @@ Example: [{"fact": "Tesla revenue was $25B in Q1", "source_url": "https://exampl
 
 User Query: {user_query}
 """
-# Module-level singleton
-llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+
 
 async def fact_checker_node(state: AgentState):
-    # We only look at the most recently added raw results to save tokens
     raw_results = state.get("raw_search_results", [])
     if not raw_results:
         return {"agent_status": "fact_checker"}
         
-    # Get the latest batch added by the researcher (up to 5)
     newest_results = raw_results[-5:]
     results_str = json.dumps(newest_results, indent=2)
     
@@ -30,6 +30,12 @@ async def fact_checker_node(state: AgentState):
         HumanMessage(content=f"Raw Results:\n{results_str}")
     ]
     
+    api_key = state.get("user_api_key")
+    if api_key:
+        llm = ChatGroq(api_key=api_key, model="llama-3.3-70b-versatile", temperature=0)
+    else:
+        llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0)
+        
     response = await llm.ainvoke(messages)
     
     try:
@@ -38,13 +44,13 @@ async def fact_checker_node(state: AgentState):
         if not isinstance(facts, list):
             facts = [str(facts)]
     except Exception as e:
-        print(f"Fact Checker failed to parse JSON: {e}")
-        facts = [response.content] # Fallback to raw text
+        logger.error(f"Fact Checker failed to parse JSON: {e}")
+        facts = [response.content]
         
     current_iter = state.get("iteration_count", 0)
     
     return {
         "verified_facts": facts,
         "agent_status": "fact_checker",
-        "iteration_count": current_iter + 1 # Increment the loop counter!
+        "iteration_count": current_iter + 1
     }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { API_BASE } from '../lib/api';
 import { Search, Square, Loader2, Clock, History, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
@@ -31,7 +32,7 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
     if (showHistory && token) {
       const fetchHistory = async () => {
         try {
-          const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+          const baseUrl = API_BASE;
           const res = await fetch(`${baseUrl}/history`, {
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -110,7 +111,7 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
   const handleHistoryClick = async (h: any) => {
     setShowHistory(false);
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       const res = await fetch(`${baseUrl}/history/${h.id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -128,7 +129,7 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore }: ChatInpu
   const handleDeleteHistory = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       await fetch(`${baseUrl}/history/${id}`, { 
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }

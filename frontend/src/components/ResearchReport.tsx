@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { API_BASE } from '../lib/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSlug from 'rehype-slug';
@@ -74,7 +75,7 @@ export function ResearchReport({ content, isStreaming, totalTime, reportId }: Re
     if (!reportId) return;
     setRating(val);
     try {
-      const baseUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      const baseUrl = API_BASE;
       await fetch(`${baseUrl}/history/${reportId}/rate`, {
         method: 'POST',
         headers: { 
