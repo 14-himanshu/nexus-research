@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { API_BASE } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
-import { Lock, User as UserIcon, Mail, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Lock, User as UserIcon, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const FEATURES = [
@@ -14,7 +14,6 @@ const FEATURES = [
 
 export function SignupPage() {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -22,7 +21,7 @@ export function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username || !password || !email) return;
+    if (!username || !password) return;
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters');
       return;
@@ -41,6 +40,7 @@ export function SignupPage() {
       const userRes = await fetch(`${API_BASE}/me`, {
         headers: { 'Authorization': `Bearer ${data.access_token}` },
       });
+      if (!userRes.ok) throw new Error('Failed to fetch user profile');
       const userData = await userRes.json();
 
       login(data.access_token, userData);
@@ -79,21 +79,7 @@ export function SignupPage() {
         {/* Form Card */}
         <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-7 backdrop-blur-xl shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-medium text-zinc-400">Email address</label>
-              <div className="relative">
-                <Mail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-600" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl py-3 pl-10 pr-4 text-[14px] text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.06] transition-all duration-200"
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-            </div>
+
 
             {/* Username */}
             <div className="space-y-1.5">
@@ -146,7 +132,7 @@ export function SignupPage() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={isLoading || !username || !password || !email}
+              disabled={isLoading || !username || !password}
               className="w-full py-3 mt-2 bg-white text-black font-semibold rounded-xl hover:bg-zinc-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-[14px] shadow-lg shadow-white/10"
             >
               {isLoading ? (

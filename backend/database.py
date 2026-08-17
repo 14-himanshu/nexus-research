@@ -30,8 +30,18 @@ def decrypt_key(encrypted_key: str) -> str:
         # Fallback for plain-text existing keys
         return encrypted_key
 
-def get_connection():
-    return psycopg2.connect(DATABASE_URL)
+from psycopg2 import pool as pg_pool
+from contextlib import contextmanager
+
+_pool = pg_pool.ThreadedConnectionPool(1, 10, DATABASE_URL)
+
+@contextmanager
+def get_db_connection():
+    conn = _pool.getconn()
+    try:
+        yield conn
+    finally:
+        _pool.putconn(conn)
 
 def init_db():
     with closing(get_connection()) as conn:
@@ -76,7 +86,7 @@ def init_db():
 # --- User Management ---
 
 def create_user(username: str, password_hash: str):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             try:
                 cursor.execute('''
@@ -93,7 +103,7 @@ def create_user(username: str, password_hash: str):
                 return None
 
 def get_user_by_username(username: str):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('SELECT id, username, password_hash, gemini_api_key FROM users WHERE username = %s', (username,))
             row = cursor.fetchone()
@@ -103,7 +113,7 @@ def get_user_by_username(username: str):
             return None
 
 def get_user_by_id(user_id: int):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('SELECT id, username, gemini_api_key FROM users WHERE id = %s', (user_id,))
             row = cursor.fetchone()
@@ -113,7 +123,7 @@ def get_user_by_id(user_id: int):
             return None
 
 def update_user_settings(user_id: int, gemini_api_key: str):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             encrypted_key = encrypt_key(gemini_api_key) if gemini_api_key else None
             cursor.execute('UPDATE users SET gemini_api_key = %s WHERE id = %s', (encrypted_key, user_id))
@@ -122,7 +132,7 @@ def update_user_settings(user_id: int, gemini_api_key: str):
 # --- History Management ---
 
 def save_report(user_id: int, query: str, report: str, depth: str, collection_id: int | None = None):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 INSERT INTO history (user_id, query, report, depth, created_at, collection_id)
@@ -136,7 +146,7 @@ def save_report(user_id: int, query: str, report: str, depth: str, collection_id
             return report_id
 
 def get_history(user_id: int, collection_id: int | None = None, limit: int = 50):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             if collection_id is not None:
                 cursor.execute('''
@@ -160,7 +170,7 @@ def get_history(user_id: int, collection_id: int | None = None, limit: int = 50)
 # --- Collections Management ---
 
 def create_collection(user_id: int, name: str):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 INSERT INTO collections (user_id, name)
@@ -174,7 +184,7 @@ def create_collection(user_id: int, name: str):
             return collection_id
 
 def get_collections(user_id: int):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 SELECT id, name, created_at FROM collections
@@ -185,14 +195,14 @@ def get_collections(user_id: int):
             return [{"id": r[0], "name": r[1], "created_at": r[2].isoformat() if isinstance(r[2], datetime) else r[2]} for r in rows]
 
 def delete_collection(user_id: int, collection_id: int):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('UPDATE history SET collection_id = NULL WHERE collection_id = %s AND user_id = %s', (collection_id, user_id))
             cursor.execute('DELETE FROM collections WHERE id = %s AND user_id = %s', (collection_id, user_id))
             conn.commit()
 
 def update_report_collection(user_id: int, report_id: int, collection_id: int):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 UPDATE history SET collection_id = %s
@@ -202,11 +212,11 @@ def update_report_collection(user_id: int, report_id: int, collection_id: int):
 
 
 def get_report(user_id: int, report_id: int):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 SELECT id, query, report, depth, rating, created_at, collection_id FROM history
-                WHERE id = %s AND (user_id = %s OR user_id IS NULL)
+                WHERE id = %s AND user_id = %s
             ''', (report_id, user_id))
             row = cursor.fetchone()
             
@@ -223,11 +233,11 @@ def get_report(user_id: int, report_id: int):
             return None
 
 def delete_report(user_id: int, report_id: int):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 DELETE FROM history
-                WHERE id = %s AND (user_id = %s OR user_id IS NULL)
+                WHERE id = %s AND user_id = %s
             ''', (report_id, user_id))
             conn.commit()
 
@@ -237,12 +247,16 @@ def update_rating(user_id: int, report_id: int, rating: int):
             cursor.execute('''
                 UPDATE history
                 SET rating = %s
-                WHERE id = %s AND (user_id = %s OR user_id IS NULL)
+                WHERE id = %s AND user_id = %s
             ''', (rating, report_id, user_id))
             conn.commit()
 
+import logging
+logger = logging.getLogger(__name__)
 # Initialize on import
 try:
     init_db()
+    logger.info("Database initialized successfully.")
 except Exception as e:
-    print(f"Warning: Could not initialize database on import: {e}")
+    logger.critical(f"FATAL: Could not initialize database: {e}")
+    raise

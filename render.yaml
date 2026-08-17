@@ -15,9 +15,13 @@ services:
         sync: false # Set in Render Dashboard
       - key: TAVILY_API_KEY
         sync: false # Set in Render Dashboard
+      - key: JINA_API_KEY
+        sync: false # Set in Render Dashboard
       - key: ENCRYPTION_KEY
         sync: false # Set in Render Dashboard
       - key: JWT_SECRET
         sync: false # Set in Render Dashboard
+      - key: FRONTEND_URL
+        value: https://nexus-research-omega.vercel.app
       - key: PYTHON_VERSION
         value: 3.11.0

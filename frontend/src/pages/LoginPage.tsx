@@ -29,6 +29,7 @@ export function LoginPage() {
       const userRes = await fetch(`${API_BASE}/me`, {
         headers: { 'Authorization': `Bearer ${data.access_token}` },
       });
+      if (!userRes.ok) throw new Error('Failed to fetch user profile');
       const userData = await userRes.json();
 
       login(data.access_token, userData);
