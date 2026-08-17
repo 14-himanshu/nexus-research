@@ -141,13 +141,15 @@ export function useResearchStream() {
         for (const chunk of lines) {
           if (!chunk.trim()) continue;
           
-          const eventMatch = chunk.match(/event: (.*)\n/);
-          const dataMatch = chunk.match(/data: (.*)/);
+          const chunkLines = chunk.split('\n');
+          let eventType = '';
+          let dataStr = '';
+          for (const line of chunkLines) {
+            if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+            if (line.startsWith('data: ')) dataStr = line.slice(6).trim();
+          }
           
-          if (eventMatch && dataMatch) {
-            const eventType = eventMatch[1].trim();
-            const dataStr = dataMatch[1].trim();
-            
+          if (eventType && dataStr) {
             try {
               const data = JSON.parse(dataStr);
               

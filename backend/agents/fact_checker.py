@@ -20,7 +20,10 @@ async def fact_checker_node(state: AgentState):
     if not raw_results:
         return {"agent_status": "fact_checker"}
         
-    newest_results = raw_results[-5:]
+    current_iter = state.get("iteration_count", 0)
+    results_per_iter = 5
+    start_idx = current_iter * results_per_iter
+    newest_results = raw_results[start_idx:start_idx + results_per_iter]
     results_str = json.dumps(newest_results, indent=2)
     
     prompt = FACT_CHECKER_PROMPT.replace("{user_query}", state.get("user_query", ""))

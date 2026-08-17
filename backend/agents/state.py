@@ -20,7 +20,7 @@ class AgentState(TypedDict):
     
     # Use Annotated with a reducer so each agent can safely append to these lists
     raw_search_results: Annotated[List[dict], append_results]
-    verified_facts: Annotated[List[str], append_results]
+    verified_facts: Annotated[List[Any], append_results]
     
     final_report: str                # Writer's final Markdown output
     agent_status: str                # e.g. "planning", "researching", "writing"

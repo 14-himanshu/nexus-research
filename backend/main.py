@@ -31,14 +31,16 @@ limiter = Limiter(key_func=get_remote_address)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-FRONTEND_URL = os.getenv("FRONTEND_URL", "*")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "")
+ALLOWED_ORIGINS = [o.strip() for o in FRONTEND_URL.split(",") if o.strip()] or ["http://localhost:5173"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL] if FRONTEND_URL != "*" else ["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 class UserCreate(BaseModel):
@@ -81,7 +83,8 @@ class ResearchRequest(BaseModel):
         return v
 
 @app.post("/signup")
-async def signup(user: UserCreate):
+@limiter.limit("5/minute")
+async def signup(request: Request, user: UserCreate):
     hashed = get_password_hash(user.password)
     user_id = create_user(user.username, hashed)
     if not user_id:
@@ -90,7 +93,8 @@ async def signup(user: UserCreate):
     return {"access_token": token, "token_type": "bearer"}
 
 @app.post("/login")
-async def login(user: UserCreate):
+@limiter.limit("10/minute")
+async def login(request: Request, user: UserCreate):
     db_user = get_user_by_username(user.username)
     if not db_user or not verify_password(user.password, db_user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -140,7 +144,7 @@ async def generate_sse_events(user_id: int, query: str, depth: str, chat_history
             "user_api_key": user_api_key or ""
         }
         
-        async for event in research_graph.astream_events(initial_state, version="v1"):
+        async for event in research_graph.astream_events(initial_state, version="v2"):
             kind = event["event"]
             
             if kind == "on_chain_start":
