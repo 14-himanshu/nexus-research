@@ -44,7 +44,7 @@ def get_db_connection():
         _pool.putconn(conn)
 
 def init_db():
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             # Users table
             cursor.execute('''
@@ -242,7 +242,7 @@ def delete_report(user_id: int, report_id: int):
             conn.commit()
 
 def update_rating(user_id: int, report_id: int, rating: int):
-    with closing(get_connection()) as conn:
+    with get_db_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute('''
                 UPDATE history
