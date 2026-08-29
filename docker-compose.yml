@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: nexus-backend
+    ports:
+      - "8000:8000"
+    environment:
+      # Use an actual DB URL or setup a postgres container (using dummy by default for dev if local DB isn't set)
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@localhost:5432/nexus}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - JINA_API_KEY=${JINA_API_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-your_encryption_key_here}
+      - JWT_SECRET=${JWT_SECRET:-local_dummy_jwt_secret}
+      - FRONTEND_URL=http://localhost:80,http://localhost:5173
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Pass backend URL at build time so Vite can embed it in static assets
+        - VITE_BACKEND_URL=http://localhost:8000
+    container_name: nexus-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

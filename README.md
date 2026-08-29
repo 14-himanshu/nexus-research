@@ -30,66 +30,76 @@ Nexus Research is an enterprise-grade AI research assistant that doesn't just an
 
 ## 🚀 Getting Started
 
-Follow these instructions to run Nexus Research locally on your machine.
+You can run Nexus Research either using **Docker** (recommended) or manually.
 
 ### Prerequisites
-- Python 3.9+
-- Node.js 18+
 - API Keys: 
   - [Google Gemini API Key](https://aistudio.google.com/app/apikey)
   - [Tavily Search API Key](https://tavily.com/)
 
-### 1. Backend Setup (AI Engine)
-The backend handles the LangGraph pipeline, database, and authentication.
+### Method 1: Using Docker (Recommended)
+Make sure you have [Docker](https://docs.docker.com/get-docker/) installed. This method spins up both the frontend and backend in a single command.
+
+```bash
+# Set up backend environment variables
+cp backend/.env.example backend/.env
+
+# Add your API keys and a DATABASE_URL to backend/.env
+# If you don't have a database, the docker-compose defaults to a local dev setup.
+
+# Start the application
+docker-compose up --build
+```
+- **Frontend App**: `http://localhost:80`
+- **Backend API**: `http://localhost:8000`
+
+### Method 2: Manual Setup
+
+#### 1. Backend Setup (AI Engine)
+Requires Python 3.9+
 
 ```bash
 cd backend
-
-# Create and activate a virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows use: venv\Scripts\activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Set up environment variables
 cp .env.example .env
 ```
-Edit the `.env` file and add your API keys:
-- `GROQ_API_KEY` (or `GEMINI_API_KEY`)
-- `TAVILY_API_KEY`
-- `DATABASE_URL` (e.g. your Neon or Supabase connection string)
-
-Start the backend server:
+Edit the `.env` file and add your API keys. Start the backend:
 ```bash
 uvicorn main:app --reload --port 8000
 ```
-*The backend will run on `http://localhost:8000`.*
 
-### 2. Frontend Setup (Web App)
-The frontend is a beautiful, dark-mode React application.
+#### 2. Frontend Setup (Web App)
+Requires Node.js 18+
 
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start the development server
 npm run dev
 ```
-*The frontend will run on `http://localhost:5173`. Open this URL in your browser.*
 
 ---
 
 ## ☁️ Deployment
 
-Nexus Research is fully configured for professional, free-tier deployment using a standard DevOps pipeline.
+Nexus Research is fully configured for professional deployment. To ensure your deployed app doesn't throw a "Failed to fetch" error, follow these steps exactly:
 
-1. **Frontend (Vercel)**: Import the repository to Vercel. Add `VITE_BACKEND_URL` pointing to your deployed backend URL.
-2. **Backend (Render)**: Use the provided `render.yaml` Blueprint to automatically provision the backend service. Make sure to add all environment variables (API keys, `DATABASE_URL`) in the Render dashboard.
-3. **Database (Neon/Supabase)**: Create a free serverless Postgres database and copy the connection string.
-4. **CI/CD**: The included `.github/workflows/ci.yml` will automatically verify your frontend types and backend linting on every push to `main`.
+1. **Database (Neon/Supabase)**: Create a free serverless Postgres database and copy the connection string.
+2. **Frontend (Vercel)**: Import the `frontend` directory to Vercel. 
+   - You **MUST** add the `VITE_BACKEND_URL` environment variable pointing to your deployed backend URL (e.g., `https://my-backend.onrender.com`).
+3. **Backend (Render)**: Use the provided `render.yaml` Blueprint to automatically provision the backend service.
+   - You **MUST** add `FRONTEND_URL` in the Render dashboard and set it to your exact Vercel frontend URL (e.g., `https://my-frontend.vercel.app`). If this doesn't match, CORS will block requests.
+   - Make sure to add all other environment variables (API keys, `DATABASE_URL`) in the Render dashboard.
+
+## 🧪 Testing
+
+The backend includes a professional test suite using `pytest`.
+
+```bash
+cd backend
+pytest
+```
 
 ---
 
