@@ -22,6 +22,6 @@ services:
       - key: JWT_SECRET
         sync: false # Set in Render Dashboard
       - key: FRONTEND_URL
-        value: https://nexus-research-omega.vercel.app
+        sync: false # Set this in Render Dashboard to your Vercel deployment URL (e.g., https://my-app.vercel.app)
       - key: PYTHON_VERSION
         value: 3.11.0
