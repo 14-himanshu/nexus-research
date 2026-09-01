@@ -48,7 +48,7 @@ export function useCollections() {
         setCollections(prev => [data, ...prev]);
         toast.success("Project created");
       }
-    } catch (e) {
+    } catch {
       toast.error("Failed to create project");
     }
   };
@@ -65,7 +65,7 @@ export function useCollections() {
         if (activeCollectionId === id) setActiveCollectionId(null);
         toast.success("Project deleted");
       }
-    } catch (e) {
+    } catch {
       toast.error("Failed to delete project");
     }
   };

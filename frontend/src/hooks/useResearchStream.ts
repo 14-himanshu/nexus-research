@@ -197,6 +197,16 @@ export function useResearchStream() {
               } else if (eventType === 'error') {
                 setError(data.error);
                 setIsSearching(false);
+                setAgents(prev => {
+                  const newState = { ...prev };
+                  for (const k in newState) {
+                    if (newState[k].state === 'working') {
+                        newState[k].state = 'error';
+                        newState[k].statusText = 'Failed.';
+                    }
+                  }
+                  return newState;
+                });
               }
             } catch (e) {
               console.error("Failed to parse SSE data", e, dataStr);

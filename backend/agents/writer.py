@@ -55,9 +55,9 @@ async def writer_node(state: AgentState):
     # We could stream this to the frontend, but LangGraph handles that via astream_events at the API level
     api_key = state.get("user_api_key")
     if api_key:
-        llm = ChatGroq(api_key=api_key, model="llama-3.3-70b-versatile", temperature=0.3)
+        llm = ChatGroq(api_key=api_key, model="openai/gpt-oss-120b", temperature=0.3)
     else:
-        llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.3)
+        llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0.3)
         
     response = await llm.ainvoke(messages)
     
