@@ -34,7 +34,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 FRONTEND_URL = os.getenv("FRONTEND_URL", "")
 ALLOWED_ORIGINS = [o.strip() for o in FRONTEND_URL.split(",") if o.strip()]
 if not ALLOWED_ORIGINS:
-    ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:80", "http://localhost"]
+    ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:80", "http://localhost", "https://nexus-research-omega.vercel.app"]
 
 logger.info(f"CORS Allowed Origins: {ALLOWED_ORIGINS}")
 

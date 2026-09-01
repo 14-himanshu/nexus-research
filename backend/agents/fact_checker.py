@@ -35,9 +35,9 @@ async def fact_checker_node(state: AgentState):
     
     api_key = state.get("user_api_key")
     if api_key:
-        llm = ChatGroq(api_key=api_key, model="llama-3.3-70b-versatile", temperature=0.1)
+        llm = ChatGroq(api_key=api_key, model="openai/gpt-oss-120b", temperature=0.1)
     else:
-        llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.1)
+        llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0.1)
         
     response = await llm.ainvoke(messages)
     
