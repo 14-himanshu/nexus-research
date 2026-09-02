@@ -30,9 +30,9 @@ async def planner_node(state: AgentState):
     
     api_key = state.get("user_api_key")
     if api_key:
-        llm = ChatGroq(api_key=api_key, model="openai/gpt-oss-120b", temperature=0)
+        llm = ChatGroq(api_key=api_key, model="llama3-70b-8192", temperature=0)
     else:
-        llm = ChatGroq(model="openai/gpt-oss-120b", temperature=0)
+        llm = ChatGroq(model="llama3-70b-8192", temperature=0)
         
     response = await llm.ainvoke(messages)
     

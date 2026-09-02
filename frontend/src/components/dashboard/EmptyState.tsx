@@ -1,5 +1,7 @@
 import { Zap, Sparkles, BookOpen, Microscope, Clock } from 'lucide-react';
 import { ChatInput } from '../ChatInput';
+import { StatsBar } from './StatsBar';
+import { RecentReports } from './RecentReports';
 
 interface EmptyStateProps {
     startResearch: (query: string, depth: string, collection_id?: number | null) => void;
@@ -17,12 +19,13 @@ const SUGGESTIONS = [
     { label: 'Quantum computing', icon: Microscope, prompt: 'Current state of quantum computing and practical applications timeline', category: 'Science' },
 ];
 
-export function EmptyState({ startResearch, stopResearch, isSearching, restoreReport, activeCollectionId }: EmptyStateProps) {
+export function EmptyState({ startResearch, stopResearch, isSearching, restoreReport, activeCollectionId, collections = [] }: EmptyStateProps) {
     return (
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative overflow-hidden">
             {/* Ambient glow */}
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/5 blur-[100px] rounded-full pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-purple-500/5 blur-[80px] rounded-full pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 animate-gradient-shift pointer-events-none" />
+            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/10 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
 
             {/* Hero */}
             <div className="relative z-10 text-center mb-10 max-w-2xl">
@@ -41,7 +44,7 @@ export function EmptyState({ startResearch, stopResearch, isSearching, restoreRe
             </div>
 
             {/* Search Bar */}
-            <div className="w-full max-w-2xl relative z-10">
+            <div className="w-full max-w-2xl relative z-10 mb-8">
                 <ChatInput
                     onSearch={startResearch}
                     onStop={stopResearch}
@@ -50,6 +53,10 @@ export function EmptyState({ startResearch, stopResearch, isSearching, restoreRe
                     activeCollectionId={activeCollectionId}
                 />
             </div>
+
+            <StatsBar collectionsCount={collections.length} />
+
+            <RecentReports onRestore={restoreReport} />
 
             {/* Suggestion chips */}
             <div className="relative z-10 mt-8 flex flex-col items-center gap-3">

@@ -48,6 +48,34 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .stat-card {
+    @apply hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-indigo-500/10 cursor-default;
+  }
+
+  .recent-card {
+    @apply hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-indigo-500/10;
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradientShift 10s ease infinite;
 }
 
 /* Minimalist scrollbar */

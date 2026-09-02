@@ -121,10 +121,13 @@ export function DashboardPage() {
 
           {/* ── Active workspace ─────────────────────────────── */}
           {hasContent && (
-            <>
-              {/* Pipeline tracker — sticky banner at top, NOT inside scroll area */}
+            <div className="flex-1 flex flex-row overflow-hidden w-full h-full relative">
+              
+              {/* Left: Report Content & Input */}
+              <div className="flex-1 flex flex-col min-w-0 relative h-full">
+              {/* Pipeline tracker — banner for < xl screens */}
               {showPipeline && (
-                <div className="shrink-0 border-b border-white/[0.06] bg-[#0a0a0f]">
+                <div className="xl:hidden shrink-0 border-b border-white/[0.06] bg-[#0a0a0f]">
                   <div className="max-w-4xl mx-auto px-6">
                     {/* Collapse toggle header */}
                     <button
@@ -166,7 +169,7 @@ export function DashboardPage() {
               )}
 
               {/* Scrollable content — error + skeleton + report */}
-              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide" style={{ paddingBottom: '140px' }}>
+              <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide" style={{ paddingBottom: '110px' }}>
                 <div className="max-w-4xl mx-auto px-6 pt-6">
 
                   {/* Error */}
@@ -236,7 +239,17 @@ export function DashboardPage() {
                   </div>
                 </div>
               </div>
-            </>
+                </div>
+              
+              {/* Right: Pipeline Side-panel for xl screens */}
+              {showPipeline && (
+                <div className="hidden xl:flex flex-col w-[350px] shrink-0 border-l border-white/[0.06] bg-[#0d0d14] overflow-y-auto">
+                  <div className="p-4">
+                    <AgentTracker agents={agents} />
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </main>
       </div>

@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Plus, Trash2, Library, Hash, FolderOpen, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Trash2, Library, Hash, FolderOpen, ChevronRight, Clock, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { useAuth } from '../../context/AuthContext';
+import { API_BASE } from '../../lib/api';
 interface Collection {
   id: number;
   name: string;
@@ -27,6 +28,26 @@ export function Sidebar({
 }: SidebarProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState('');
+  const { token } = useAuth();
+  const [history, setHistory] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!token) return;
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/history?limit=5`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setHistory(data.slice(0, 5));
+        }
+      } catch (e) {
+        console.error('Failed to load history', e);
+      }
+    };
+    fetchHistory();
+  }, [token, activeCollectionId]);
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,6 +158,30 @@ export function Sidebar({
             ))}
           </div>
         </div>
+
+        {/* Recent History */}
+        {history.length > 0 && (
+          <>
+            <div className="mx-4 h-px bg-white/[0.05]" />
+            <div className="px-4 py-4">
+              <div className="flex items-center gap-2 mb-3 px-1 text-zinc-500">
+                <Clock size={12} />
+                <p className="text-[10px] font-semibold uppercase tracking-widest">Recent Activity</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                {history.map(h => (
+                  <button
+                    key={h.id}
+                    className="flex items-center gap-2.5 px-2 py-2 text-left text-[12px] text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.06] rounded-lg transition-colors group"
+                  >
+                    <FileText size={12} className="shrink-0 opacity-40 group-hover:opacity-100" />
+                    <span className="truncate">{h.query}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </motion.aside>
   );

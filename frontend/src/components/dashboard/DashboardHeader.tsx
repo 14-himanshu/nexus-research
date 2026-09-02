@@ -10,9 +10,10 @@ interface DashboardHeaderProps {
   totalReports?: number;
   isSidebarOpen?: boolean;
   toggleSidebar?: () => void;
+  activeCollectionName?: string;
 }
 
-export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout, lastQuery, totalReports, isSidebarOpen, toggleSidebar }: DashboardHeaderProps) {
+export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout, lastQuery, totalReports, isSidebarOpen, toggleSidebar, activeCollectionName }: DashboardHeaderProps) {
   const navigate = useNavigate();
 
   const statusConfig = {
@@ -43,16 +44,28 @@ export function DashboardHeader({ user, backendStatus, onSettingsClick, onLogout
           <img src="/favicon.svg" alt="Nexus Logo" className="w-7 h-7 drop-shadow-md group-hover:scale-105 transition-transform" />
           <span className="text-sm font-bold tracking-tight text-white hidden sm:block">Nexus</span>
         </div>
-        {lastQuery && (
+        
+        {(activeCollectionName || lastQuery) && (
           <div className="hidden md:flex items-center gap-2 text-[13px]">
             <span className="text-zinc-700">/</span>
-            <span className="text-zinc-400 truncate max-w-[280px] font-medium">{lastQuery}</span>
+            {activeCollectionName && (
+              <>
+                <span className="text-zinc-300 font-medium">{activeCollectionName}</span>
+                {lastQuery && <span className="text-zinc-700">/</span>}
+              </>
+            )}
+            {lastQuery && (
+              <span className="text-zinc-400 truncate max-w-[280px]">{lastQuery}</span>
+            )}
           </div>
         )}
       </div>
 
       {/* Right: Status + User */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        <div className="hidden lg:flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/5 text-[10px] text-zinc-500 font-mono">
+          <span>⌘</span><span>K</span>
+        </div>
         {/* Backend Status Badge */}
         <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.07] text-xs font-medium">
           <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${status.dot}`} />
