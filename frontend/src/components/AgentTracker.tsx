@@ -175,6 +175,14 @@ export function AgentTracker({ agents }: AgentTrackerProps) {
         </span>
       </div>
 
+      {/* Progress Bar */}
+      <div className="w-full h-1 bg-white/5 relative">
+        <div 
+          className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-emerald-500 transition-all duration-700 ease-in-out"
+          style={{ width: `${(doneCount / agentEntries.length) * 100}%` }}
+        />
+      </div>
+
       {/* Steps */}
       <div className="flex items-stretch gap-0 p-4">
         {agentEntries.map(([key, agent], index) => (

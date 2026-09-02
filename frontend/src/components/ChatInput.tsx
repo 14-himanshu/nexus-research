@@ -238,7 +238,7 @@ export function ChatInput({ onSearch, onStop, isSearching, onRestore, activeColl
                 <button
                   type="button"
                   onClick={onStop}
-                  className="flex items-center gap-2 px-3 py-2 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 rounded-xl transition-all duration-200 text-[12px] font-semibold shrink-0"
+                  className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 rounded-xl transition-all duration-200 text-[13px] shadow-lg shadow-red-500/10 font-semibold shrink-0"
                 >
                   <div className="relative w-4 h-4">
                     <Loader2 size={14} className="animate-spin absolute inset-0" />
